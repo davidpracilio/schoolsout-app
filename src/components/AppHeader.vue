@@ -86,7 +86,16 @@
 
 @media (min-width: 768px) {
   .header-content {
+    max-width: 1200px;
     padding: 12px 24px;
+  }
+  
+  .logo-section {
+    flex: 1;
+  }
+  
+  .menu-button {
+    margin-left: auto;
   }
 }
 </style>

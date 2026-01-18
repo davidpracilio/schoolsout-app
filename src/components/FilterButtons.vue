@@ -73,7 +73,7 @@ const selectFilter = (filterValue) => {
   border: 2px solid #4EAFD9;
   background-color: transparent;
   color: #4EAFD9;
-  border-radius: 20px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
