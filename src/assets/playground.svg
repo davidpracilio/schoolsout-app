@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sky background -->
+  <rect width="200" height="200" fill="#B8E6F5"/>
+  
+  <!-- Sun -->
+  <circle cx="160" cy="40" r="20" fill="#FFD93D"/>
+  
+  <!-- Slide -->
+  <path d="M140 110 L140 60 L150 60 L150 110" fill="#E94560"/>
+  <path d="M150 60 L150 110 L90 140 L90 130 L145 105 L145 60 Z" fill="#FF6B9D"/>
+  <rect x="135" y="55" width="20" height="5" fill="#C4314B"/>
+  
+  <!-- Swing set -->
+  <path d="M40 130 L50 60 L55 60 L45 130 Z" fill="#8B4513"/>
+  <path d="M80 130 L70 60 L75 60 L85 130 Z" fill="#8B4513"/>
+  <rect x="48" y="55" width="27" height="5" fill="#654321"/>
+  
+  <!-- Swing -->
+  <line x1="55" y1="60" x2="55" y2="100" stroke="#666" stroke-width="2"/>
+  <line x1="70" y1="60" x2="70" y2="100" stroke="#666" stroke-width="2"/>
+  <rect x="50" y="100" width="25" height="8" rx="2" fill="#4EAFD9"/>
+  
+  <!-- Grass -->
+  <rect y="130" width="200" height="70" fill="#7FCD91"/>
+  
+  <!-- Flowers -->
+  <circle cx="20" cy="145" r="5" fill="#FF6B9D"/>
+  <circle cx="30" cy="150" r="5" fill="#FFD93D"/>
+  <circle cx="100" cy="148" r="5" fill="#E94560"/>
+  <circle cx="170" cy="145" r="5" fill="#FF6B9D"/>
+  <circle cx="185" cy="152" r="5" fill="#FFD93D"/>
+</svg>

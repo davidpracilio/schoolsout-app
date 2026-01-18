@@ -1,0 +1,42 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#FFF5E6"/>
+  
+  <!-- Grass ground -->
+  <ellipse cx="100" cy="170" rx="90" ry="20" fill="#A8D5A8"/>
+  
+  <!-- Koala -->
+  <ellipse cx="60" cy="100" rx="25" ry="30" fill="#9E9E9E"/>
+  <circle cx="50" cy="80" r="15" fill="#9E9E9E"/>
+  <circle cx="70" cy="80" r="15" fill="#9E9E9E"/>
+  <circle cx="48" cy="80" r="10" fill="#FFF5E6"/>
+  <circle cx="72" cy="80" r="10" fill="#FFF5E6"/>
+  <ellipse cx="60" cy="95" rx="18" ry="22" fill="#D5D5D5"/>
+  <circle cx="55" cy="90" r="3" fill="#333"/>
+  <circle cx="65" cy="90" r="3" fill="#333"/>
+  <ellipse cx="60" cy="98" rx="6" ry="8" fill="#666"/>
+  
+  <!-- Kangaroo -->
+  <ellipse cx="140" cy="120" rx="20" ry="35" fill="#C19A6B"/>
+  <ellipse cx="140" cy="95" rx="15" ry="18" fill="#C19A6B"/>
+  <circle cx="135" cy="90" r="3" fill="#333"/>
+  <circle cx="145" cy="90" r="3" fill="#333"/>
+  <ellipse cx="135" cy="85" rx="8" ry="12" fill="#C19A6B"/>
+  <ellipse cx="145" cy="85" rx="8" ry="12" fill="#C19A6B"/>
+  <path d="M130 140 L125 160 L135 160 Z" fill="#C19A6B"/>
+  <path d="M150 140 L155 160 L145 160 Z" fill="#C19A6B"/>
+  <path d="M160 130 L175 140 L165 145 Z" fill="#C19A6B"/>
+  
+  <!-- Small bird -->
+  <ellipse cx="30" cy="40" rx="8" ry="6" fill="#FF6B9D"/>
+  <circle cx="28" cy="38" r="2" fill="#333"/>
+  <path d="M25 40 L15 35 L20 42 Z" fill="#FF6B9D"/>
+  <path d="M35 40 L45 35 L40 42 Z" fill="#FF6B9D"/>
+  
+  <!-- Butterfly -->
+  <ellipse cx="160" cy="45" rx="8" ry="12" fill="#FFD93D" transform="rotate(-20 160 45)"/>
+  <ellipse cx="172" cy="45" rx="8" ry="12" fill="#FFD93D" transform="rotate(20 172 45)"/>
+  <ellipse cx="160" cy="55" rx="6" ry="10" fill="#FFA07A" transform="rotate(-20 160 55)"/>
+  <ellipse cx="172" cy="55" rx="6" ry="10" fill="#FFA07A" transform="rotate(20 172 55)"/>
+  <line x1="166" y1="40" x2="166" y2="60" stroke="#333" stroke-width="2"/>
+</svg>
