@@ -1,32 +1,75 @@
 <template>
   <div class="app">
-    <AppHeader />
-    <main class="main-content">
-      <SearchBar 
-        v-model="searchQuery"
-        @search="handleSearch"
-      />
-      <FilterButtons 
-        :activeFilter="activeFilter"
-        @filter-change="handleFilterChange"
-      />
-      <ActivityList 
-        :activities="activities"
-        @toggle-favorite="handleToggleFavorite"
-      />
-    </main>
+    <LandingPage 
+      v-if="showLanding"
+      @enter="enterApp"
+    />
+    <template v-else>
+      <AppHeader @go-home="goToLanding" />
+      <main class="main-content">
+        <SearchBar 
+          v-model="searchQuery"
+          @search="handleSearch"
+        />
+        <FilterButtons 
+          :activeFilter="activeFilter"
+          @filter-change="handleFilterChange"
+        />
+        <ActivityList 
+          :activities="activities"
+          @toggle-favorite="handleToggleFavorite"
+        />
+      </main>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import LandingPage from './components/LandingPage.vue'
 import AppHeader from './components/AppHeader.vue'
 import SearchBar from './components/SearchBar.vue'
 import FilterButtons from './components/FilterButtons.vue'
 import ActivityList from './components/ActivityList.vue'
 
+const showLanding = ref(true)
 const searchQuery = ref('')
 const activeFilter = ref('distance')
+
+// Initialize with landing page state
+onMounted(() => {
+  // Set initial state if not already set
+  if (!window.history.state) {
+    window.history.replaceState({ page: 'landing' }, '', '')
+  } else if (window.history.state.page === 'app') {
+    showLanding.value = false
+  }
+  
+  // Listen for browser back/forward buttons
+  window.addEventListener('popstate', handlePopState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('popstate', handlePopState)
+})
+
+const handlePopState = (event) => {
+  if (event.state && event.state.page === 'landing') {
+    showLanding.value = true
+  } else if (event.state && event.state.page === 'app') {
+    showLanding.value = false
+  }
+}
+
+const enterApp = () => {
+  showLanding.value = false
+  window.history.pushState({ page: 'app' }, '', '')
+}
+
+const goToLanding = () => {
+  showLanding.value = true
+  window.history.pushState({ page: 'landing' }, '', '')
+}
 
 // Sample data - will be replaced with API calls
 const activities = ref([

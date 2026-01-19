@@ -1,11 +1,11 @@
 <template>
   <header class="app-header">
     <div class="header-content">
-      <div class="logo-section">
+      <div class="logo-section" @click="$emit('go-home')" style="cursor: pointer;">
         <img src="../assets/capybara.jpg" alt="Schools Out Logo" class="logo-icon" />
         <h1 class="app-title">Schools Out</h1>
       </div>
-      <button class="menu-button" aria-label="Menu">
+      <button class="menu-button" @click="$emit('go-home')" aria-label="Menu">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 12H21M3 6H21M3 18H21" stroke="white" stroke-width="2" stroke-linecap="round"/>
         </svg>
@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-// No props or logic needed for basic header
+defineEmits(['go-home'])
 </script>
 
 <style scoped>
