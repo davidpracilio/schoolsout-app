@@ -15,11 +15,13 @@
           v-model="searchQuery"
           @search="handleSearch"
         />
+        <!-- Temporarily commented out - filter buttons
         <FilterButtons 
           v-if="activities.length > 0"
           :activeFilter="activeFilter"
           @filter-change="handleFilterChange"
         />
+        -->
         <ActivityList 
           :activities="activities"
           :loading="loading"
@@ -38,13 +40,13 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import LandingPage from './components/LandingPage.vue'
 import AppHeader from './components/AppHeader.vue'
 import SearchBar from './components/SearchBar.vue'
-import FilterButtons from './components/FilterButtons.vue'
+// import FilterButtons from './components/FilterButtons.vue'
 import ActivityList from './components/ActivityList.vue'
 import { useSearchActivities } from './composables/useSearchActivities'
 
 const showLanding = ref(true)
 const searchQuery = ref('')
-const activeFilter = ref('distance')
+// const activeFilter = ref('distance')
 const isSearching = ref(false)
 const hasSearched = ref(false)
 

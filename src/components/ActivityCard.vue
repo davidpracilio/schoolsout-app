@@ -67,7 +67,6 @@ defineEmits(['toggle-favorite', 'click'])
   gap: 12px;
   transition: border-color 0.2s;
   position: relative;
-  cursor: pointer;
 }
 
 .activity-card:hover {
