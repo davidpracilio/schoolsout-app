@@ -154,23 +154,6 @@ select:focus-visible {
   to { transform: rotate(360deg); }
 }
 
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-secondary);
-}
-
-.empty-state h3 {
-  font-size: 18px;
-  margin-bottom: 8px;
-  color: var(--text-primary);
-}
-
-.empty-state p {
-  font-size: 14px;
-}
-
 /* Error State */
 .error-message {
   background-color: #fee;

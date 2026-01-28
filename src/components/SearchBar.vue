@@ -20,6 +20,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useSearchActivities } from '../composables/useSearchActivities'
 
 const props = defineProps({
   modelValue: {
@@ -33,11 +34,11 @@ const emit = defineEmits(['update:modelValue', 'search'])
 const placeholderTexts = [
   'fun activities for kids aged 8-12 for areas around perth, western australia',
   'school holiday programs for teenagers in sydney, new south wales',
-  'outdoor adventure activities for kids aged 5-10 in melbourne, victoria',
-  'indoor activities for preschoolers during school holidays in brisbane',
+  'outdoor drop and leave activities for kids aged 5-10 in melbourne, victoria',
+  'indoor activities for preschoolers during school holidays in brisbane, queensland',
   'family-friendly museums and attractions in canberra, act',
   'beach activities and water sports for kids on the gold coast, queensland',
-  'creative workshops and art classes for children aged 7-14 in adelaide',
+  'creative workshops and art classes for children aged 7-14 in adelaide, south australia',
   'nature and wildlife experiences for families in hobart, tasmania'
 ]
 
@@ -49,7 +50,7 @@ onMounted(() => {
   intervalId = setInterval(() => {
     placeholderIndex = (placeholderIndex + 1) % placeholderTexts.length
     currentPlaceholder.value = placeholderTexts[placeholderIndex]
-  }, 4000)
+  }, 6000)
 })
 
 onUnmounted(() => {
@@ -70,14 +71,14 @@ const handleSearch = () => {
 <style scoped>
 .search-bar-container {
   background-color: #FFFFFF;
-  padding: 12px 16px;
+  padding: 8px 16px;
   position: sticky;
   top: 72px;
   z-index: 100;
 }
 
 .search-bar {
-  max-width: 600px;
+  max-width: 580px;
   margin: 0 auto;
   position: relative;
   display: flex;
