@@ -3,6 +3,7 @@ import { ref } from 'vue'
 const API_ENDPOINT = 'https://searchactivities-27dbbqr3ga-uc.a.run.app'
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 const DEBOUNCE_DELAY = 500 // milliseconds
+const MAX_RETRIES = 3
 
 const cache = new Map()
 
@@ -39,32 +40,46 @@ export function useSearchActivities() {
     error.value = null
 
     try {
-      console.log('Fetching from API:', API_ENDPOINT)
-      console.log('Query:', query)
-      
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ query: query.trim() })
-      })
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          console.log(`Fetching from API (attempt ${attempt}):`, API_ENDPOINT)
+          console.log('Query:', query)
+          
+          const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: query.trim() })
+          })
 
-      console.log('Response status:', response.status)
+          console.log('Response status:', response.status)
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`)
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status} ${response.statusText}`)
+          }
+
+          const data = await response.json()
+          console.log('API data received:', data)
+          
+          // Only cache and return if activities are present
+          if (data && data.activities && Array.isArray(data.activities) && data.activities.length > 0) {
+            setCached(query, data)
+            return data
+          } else {
+            // No activities returned, treat as unsuccessful
+            throw new Error('No activities returned from API')
+          }
+        } catch (err) {
+          console.error(`Search API error (attempt ${attempt}):`, err)
+          if (attempt === MAX_RETRIES) {
+            error.value = err.message
+            return null
+          }
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+        }
       }
-
-      const data = await response.json()
-      console.log('API data received:', data)
-      
-      setCached(query, data)
-      return data
-    } catch (err) {
-      error.value = err.message
-      console.error('Search API error:', err)
-      return null
     } finally {
       loading.value = false
     }
