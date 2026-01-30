@@ -9,7 +9,7 @@
       <main class="main-content">
         <div class="page-header">
           <h2 class="intro-title">Search for activities</h2>
-          <p class="intro-description">Enter a location, activity type, and an age range</p>
+          <p class="intro-description">Enter the activity type, location, and age</p>
         </div>
         <SearchBar 
           v-model="searchQuery"

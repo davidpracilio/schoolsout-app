@@ -95,6 +95,13 @@
       @click="openModal(activity)"
     />
     
+    <!-- AI Generated Disclaimer -->
+    <div v-if="activities.length > 0" class="ai-disclaimer">
+      <p class="disclaimer-text">
+        🤖 These suggestions are AI-generated and may not reflect real-time availability, prices or accuracy.
+      </p>
+    </div>
+    
     <ActivityModal
       :is-open="isModalOpen"
       :activity="selectedActivity"
@@ -453,6 +460,29 @@ const handleModalFavorite = () => {
   .try-again-button {
     padding: 12px 24px;
     font-size: 15px;
+  }
+}
+
+/* AI Disclaimer Styles */
+.ai-disclaimer {
+  padding: 10px;
+  text-align: center;
+}
+
+.disclaimer-text {
+  font-size: 12px;
+  color: #6B7280;
+  line-height: 1.4;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .ai-disclaimer {
+    padding: 14px;
+  }
+  
+  .disclaimer-text {
+    font-size: 13px;
   }
 }
 </style>
