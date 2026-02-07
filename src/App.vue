@@ -13,7 +13,9 @@
         </div>
         <SearchBar 
           v-model="searchQuery"
+          :has-searched="hasSearched"
           @search="handleSearch"
+          @search-again="handleSearch"
         />
         <!-- Temporarily commented out - filter buttons
         <FilterButtons 
@@ -187,13 +189,13 @@ const handleClearSearch = () => {
 .intro-title {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: #2c3e50;
   margin-bottom: 12px;
 }
 
 .intro-description {
   font-size: 16px;
-  color: #666;
+  color: #555;
   line-height: 1.5;
 }
 
