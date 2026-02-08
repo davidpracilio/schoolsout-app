@@ -15,16 +15,6 @@
         aria-label="Search for places and activities"
       />
       <button 
-        v-if="hasSearched && modelValue.trim()"
-        @click="searchAgain"
-        class="search-again-button"
-        aria-label="Search again"
-      >
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4V9H4.58152M4.58152 9C5.27473 6.25329 7.6218 4 10.5 4C13.8053 4 16.5 6.69469 16.5 10C16.5 13.3053 13.8053 16 10.5 16C8.54305 16 6.85933 14.9708 5.78131 13.5M4.58152 9H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <button 
         v-if="modelValue"
         @click="clearSearch"
         class="clear-button"
@@ -35,6 +25,14 @@
         </svg>
       </button>
     </div>
+    <button 
+      @click="modelValue.trim() && handleSearch()"
+      class="search-button"
+      :class="{ 'searching': loading }"
+      aria-label="Search"
+    >
+      {{ loading ? 'Searching...' : 'Search' }}
+    </button>
   </div>
 </template>
 
@@ -49,20 +47,28 @@ const props = defineProps({
   hasSearched: {
     type: Boolean,
     default: false
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  hasLocation: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'search', 'search-again'])
+const emit = defineEmits(['update:modelValue', 'search', 'request-location'])
 
 const placeholderTexts = [
-  'fun activities for kids aged 8-12 for areas around perth, western australia',
-  'school holiday programs for teenagers in sydney, new south wales',
-  'outdoor drop and leave activities for kids aged 5-10 in melbourne, victoria',
-  'indoor activities for preschoolers during school holidays in brisbane, queensland',
-  'family-friendly museums and attractions in canberra, act',
-  'beach activities and water sports for kids on the gold coast, queensland',
-  'creative workshops and art classes for children aged 7-14 in adelaide, south australia',
-  'nature and wildlife experiences for families in hobart, tasmania'
+  'fun activities for kids around perth',
+  'school holiday programs for teenagers in sydney',
+  'outdoor drop and leave activities for kids in melbourne',
+  'indoor activities for preschoolers in brisbane',
+  'family-friendly museums and attractions in canberra',
+  'beach activities and water sports for kids on the gold coast',
+  'creative workshops and art classes for children in adelaide',
+  'nature and wildlife experiences in hobart'
 ]
 
 const currentPlaceholder = ref(placeholderTexts[0])
@@ -94,8 +100,8 @@ const clearSearch = () => {
   emit('update:modelValue', '')
 }
 
-const searchAgain = () => {
-  emit('search-again')
+const requestLocation = () => {
+  emit('request-location')
 }
 </script>
 
@@ -169,41 +175,58 @@ const searchAgain = () => {
   height: 16px;
 }
 
-.search-again-button {
+.location-indicator {
   position: absolute;
-  right: 44px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding-top: 3px;
+  right: 40px; /* Position to the left of clear button */
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  color: #999;
+  width: 20px;
+  height: 20px;
+  color: #ccc; /* Gray when inactive */
+  transition: color 0.2s;
+  cursor: pointer;
 }
 
-.search-again-button::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background-color: transparent;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-  z-index: -1;
+.location-indicator:hover {
+  color: #666; /* Darker gray on hover */
 }
 
-.search-again-button:hover::before {
-  background-color: #f0f0f0;
+.location-indicator.active {
+  color: #4EAFD9; /* Blue when location is available */
 }
 
-.search-again-button svg {
+.location-indicator.active:hover {
+  color: #3a9bc7; /* Darker blue on hover */
+}
+
+.location-indicator svg {
   width: 16px;
   height: 16px;
+}
+
+.search-button {
+  display: block;
+  margin: 24px auto 0;
+  padding: 10px 20px;
+  background-color: #4EAFD9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 120px; /* Fixed width to maintain consistent button size */
+  text-align: center; /* Center text within fixed width */
+}
+
+.search-button.searching {
+  background-color: #7BC9E6; /* Lighter blue while searching */
+}
+
+.search-button.searching:hover {
+  background-color: #5BB8D6; /* Slightly darker hover state for searching button */
 }
 
 @media (min-width: 768px) {

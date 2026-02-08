@@ -9,7 +9,7 @@
         <svg class="meta-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#4EAFD9"/>
         </svg>
-        <span class="meta-text">{{ (activity.location && !activity.location.includes('Not available')) ? activity.location : 'Check the website' }}</span>
+        <span class="meta-text">{{ getLocationDisplay() }}</span>
       </span>
       
       <div class="card-meta">
@@ -55,8 +55,39 @@ const { activity } = defineProps({
 
 defineEmits(['toggle-favorite', 'click'])
 
+const getLocationDisplay = () => {
+  if (!activity.location) {
+    return 'Check the website'
+  }
+  
+  // Check if location contains "Not specified" text
+  if (activity.location.includes('Not specified')) {
+    return 'Check the website'
+  }
+  
+  // Check if location contains "Not available"
+  if (activity.location.includes('Not available')) {
+    return 'Check the website'
+  }
+  
+  return activity.location
+}
+
 const handleCardClick = () => {
-  const url = activity.bookingUrl && !activity.bookingUrl.includes('example.com') && !activity.bookingUrl.includes('Not available') ? activity.bookingUrl : `https://www.google.com/search?q=${encodeURIComponent(activity.name)}`;
+  let url;
+  
+  // Check if bookingUrl is valid and not a placeholder
+  if (activity.bookingUrl && 
+      !activity.bookingUrl.includes('example.com') && 
+      !activity.bookingUrl.includes('Not available') &&
+      !activity.bookingUrl.includes('Not%20Available') &&
+      activity.bookingUrl.trim() !== '') {
+    url = activity.bookingUrl;
+  } else {
+    // Fall back to Google search using activity name
+    url = `https://www.google.com/search?q=${encodeURIComponent(activity.name)}`;
+  }
+  
   window.open(url, '_blank');
 };
 </script>
@@ -117,7 +148,7 @@ const handleCardClick = () => {
   flex-direction: column;
   gap: 8px;
   margin-top: 8px;
-  max-width: calc(100% - 100px); /* Leave space for the button on the right */
+  max-width: 100%;
 }
 
 .card-meta .meta-item:first-child {

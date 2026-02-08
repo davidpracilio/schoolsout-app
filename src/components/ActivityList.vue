@@ -66,6 +66,14 @@
       </div>
     </div>
     
+    <!-- Search Fact -->
+    <div v-if="loading && activities.length === 0 && currentFact" class="search-fact">
+      <div class="fact-content">
+        <span class="fact-icon">💡</span>
+        <p class="fact-text">{{ currentFact }}</p>
+      </div>
+    </div>
+    
     <!-- Loading Skeleton -->
     <div v-if="loading && activities.length === 0" class="loading-skeleton">
       <div v-for="n in 6" :key="n" class="skeleton-card">
@@ -128,6 +136,10 @@ defineProps({
   hasSearched: {
     type: Boolean,
     default: false
+  },
+  currentFact: {
+    type: String,
+    default: ''
   }
 })
 
@@ -400,6 +412,36 @@ const handleModalFavorite = () => {
   flex-shrink: 0;
 }
 
+/* Search Fact Styles */
+.search-fact {
+  background: #F8F9FA;
+  border: 1px solid #E9ECEF;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.fact-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.fact-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.fact-text {
+  font-size: 16px;
+  color: #495057;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+}
+
 /* No Results State Styles */
 .no-results-state {
   text-align: center;
@@ -493,6 +535,17 @@ const handleModalFavorite = () => {
   }
   50% {
     opacity: 0.6;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

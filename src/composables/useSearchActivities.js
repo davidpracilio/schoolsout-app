@@ -1,56 +1,106 @@
 import { ref } from 'vue'
+import { searchFacts } from '../data/searchFacts.js'
 
 const API_ENDPOINT = 'https://searchactivities-27dbbqr3ga-uc.a.run.app'
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+// const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes - temporarily disabled
 const DEBOUNCE_DELAY = 500 // milliseconds
 const MAX_RETRIES = 3
 
-const cache = new Map()
+// const cache = new Map() // temporarily disabled
 
 export function useSearchActivities() {
   const loading = ref(false)
   const error = ref(null)
+  const currentFact = ref('')
   let debounceTimer = null
+  let factInterval = null
 
-  const getCached = (query) => {
-    const cached = cache.get(query)
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.data
+  // const getCached = (query) => {
+  //   const cached = cache.get(query)
+  //   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+  //     return cached.data
+  //   }
+  //   return null
+  // }
+
+  const getRandomFact = () => {
+    const randomIndex = Math.floor(Math.random() * searchFacts.length)
+    return searchFacts[randomIndex]
+  }
+
+  const startFactCycling = () => {
+    // Clear any existing interval
+    if (factInterval) {
+      clearInterval(factInterval)
     }
-    return null
+    
+    // Set initial fact
+    currentFact.value = getRandomFact()
+    
+    // Start cycling every 3 seconds
+    factInterval = setInterval(() => {
+      currentFact.value = getRandomFact()
+    }, 6000)
   }
 
-  const setCached = (query, data) => {
-    cache.set(query, { data, timestamp: Date.now() })
+  const stopFactCycling = () => {
+    if (factInterval) {
+      clearInterval(factInterval)
+      factInterval = null
+    }
+    currentFact.value = ''
   }
 
-  const fetchActivities = async (query) => {
+  const fetchActivities = async (query, location = null) => {
     if (!query || query.trim().length === 0) {
       return null
     }
 
-    // Check cache first
-    const cached = getCached(query)
-    if (cached) {
-      console.log('Returning cached results for:', query)
-      return cached
-    }
+    // Create a unique cache key that includes location if provided
+    // const cacheKey = location ? `${query}|${location.city},${location.state}` : query
+
+    // Check cache first - temporarily disabled
+    // const cached = getCached(cacheKey)
+    // if (cached) {
+    //   console.log('Returning cached results for:', cacheKey)
+    //   return cached
+    // }
 
     loading.value = true
     error.value = null
+    startFactCycling()
 
     try {
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
           console.log(`Fetching from API (attempt ${attempt}):`, API_ENDPOINT)
           console.log('Query:', query)
+          if (location) {
+            console.log('Location context:', location)
+          }
           
+          const requestBody = { query: query.trim() }
+          
+          // Check if query contains location indicators (simpler approach)
+          const queryLower = query.toLowerCase()
+          const locationIndicators = /\b(in|near|at|around|close to|nearby|within|located in|based in|from)\s+/i
+          const hasLocationInQuery = locationIndicators.test(queryLower)
+          
+          if (location && location.city && !hasLocationInQuery) {
+            // Use the suburb/city from reverse geocoding
+            const locationString = location.state 
+              ? `${location.city}, ${location.state}` 
+              : location.city
+            requestBody.location = locationString
+            console.log('Adding location to search:', locationString)
+          }
+
           const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ query: query.trim() })
+            body: JSON.stringify(requestBody)
           })
 
           console.log('Response status:', response.status)
@@ -62,13 +112,14 @@ export function useSearchActivities() {
           const data = await response.json()
           console.log('API data received:', data)
           
-          // Only cache and return if activities are present
+          // Only cache and return if activities are present - caching temporarily disabled
           if (data && data.activities && Array.isArray(data.activities) && data.activities.length > 0) {
-            setCached(query, data)
+            // setCached(cacheKey, data)
             return data
           } else {
-            // No activities returned, treat as unsuccessful
-            throw new Error('No activities returned from API')
+            // No activities returned - return empty result instead of throwing error
+            console.log('No activities returned from API for query:', query)
+            return { activities: [] }
           }
         } catch (err) {
           console.error(`Search API error (attempt ${attempt}):`, err)
@@ -82,10 +133,11 @@ export function useSearchActivities() {
       }
     } finally {
       loading.value = false
+      stopFactCycling()
     }
   }
 
-  const debouncedSearch = (query, callback) => {
+  const debouncedSearch = (query, callback, location = null) => {
     if (debounceTimer) {
       clearTimeout(debounceTimer)
     }
@@ -96,7 +148,7 @@ export function useSearchActivities() {
     }
 
     debounceTimer = setTimeout(async () => {
-      const result = await fetchActivities(query)
+      const result = await fetchActivities(query, location)
       callback(result)
     }, DEBOUNCE_DELAY)
   }
@@ -104,6 +156,7 @@ export function useSearchActivities() {
   return {
     loading,
     error,
+    currentFact,
     fetchActivities,
     debouncedSearch
   }
