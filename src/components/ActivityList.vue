@@ -66,13 +66,11 @@
       </div>
     </div>
     
-    <!-- Search Fact -->
-    <div v-if="loading && activities.length === 0 && currentFact" class="search-fact">
-      <div class="fact-content">
-        <span class="fact-icon">💡</span>
-        <p class="fact-text">{{ currentFact }}</p>
-      </div>
-    </div>
+    <!-- Loading Feedback with Progress Bar -->
+    <LoadingFeedback 
+      v-if="loading && activities.length === 0"
+      :loading="loading"
+    />
     
     <!-- Loading Skeleton -->
     <div v-if="loading && activities.length === 0" class="loading-skeleton">
@@ -123,6 +121,7 @@
 import { ref } from 'vue'
 import ActivityCard from './ActivityCard.vue'
 import ActivityModal from './ActivityModal.vue'
+import LoadingFeedback from './LoadingFeedback.vue'
 
 defineProps({
   activities: {

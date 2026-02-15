@@ -14,6 +14,8 @@ export function useSearchActivities() {
   const currentFact = ref('')
   let debounceTimer = null
   let factInterval = null
+  let abortController = null
+
 
   // const getCached = (query) => {
   //   const cached = cache.get(query)
@@ -70,6 +72,9 @@ export function useSearchActivities() {
     error.value = null
     startFactCycling()
 
+    // Create a new AbortController for this search
+    abortController = new AbortController()
+
     try {
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
@@ -100,7 +105,8 @@ export function useSearchActivities() {
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(requestBody),
+            signal: abortController.signal
           })
 
           console.log('Response status:', response.status)
@@ -122,6 +128,11 @@ export function useSearchActivities() {
             return { activities: [] }
           }
         } catch (err) {
+          // Check if error is due to abort
+          if (err.name === 'AbortError') {
+            console.log('Search cancelled by user')
+            return null
+          }
           console.error(`Search API error (attempt ${attempt}):`, err)
           if (attempt === MAX_RETRIES) {
             error.value = err.message
@@ -134,6 +145,19 @@ export function useSearchActivities() {
     } finally {
       loading.value = false
       stopFactCycling()
+    }
+  }
+
+  const cancelSearch = () => {
+    console.log('Cancelling search...')
+    if (abortController) {
+      abortController.abort()
+    }
+    loading.value = false
+    stopFactCycling()
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+      debounceTimer = null
     }
   }
 
@@ -158,6 +182,7 @@ export function useSearchActivities() {
     error,
     currentFact,
     fetchActivities,
-    debouncedSearch
+    debouncedSearch,
+    cancelSearch
   }
 }

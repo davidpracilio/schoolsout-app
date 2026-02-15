@@ -76,15 +76,17 @@ const getLocationDisplay = () => {
 const handleCardClick = () => {
   let url;
   
-  // Check if bookingUrl is valid and not a placeholder
+  // Check if bookingUrl exists and is valid (not a placeholder)
   if (activity.bookingUrl && 
       !activity.bookingUrl.includes('example.com') && 
       !activity.bookingUrl.includes('Not available') &&
       !activity.bookingUrl.includes('Not%20Available') &&
+      !activity.bookingUrl.includes('Not directly available') &&
       activity.bookingUrl.trim() !== '') {
     url = activity.bookingUrl;
   } else {
     // Fall back to Google search using activity name
+    // This handles cases where bookingUrl is missing, null, undefined, or invalid
     url = `https://www.google.com/search?q=${encodeURIComponent(activity.name)}`;
   }
   

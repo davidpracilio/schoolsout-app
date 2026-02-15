@@ -18,6 +18,7 @@
           :has-location="!!userLocation"
           @search="handleSearch"
           @request-location="requestUserLocation"
+          @cancel="handleCancelSearch"
         />
         <!-- Temporarily commented out - filter buttons
         <FilterButtons 
@@ -56,7 +57,7 @@ const isSearching = ref(false)
 const hasSearched = ref(false)
 const userLocation = ref(null)
 
-const { fetchActivities, loading, currentFact } = useSearchActivities()
+const { fetchActivities, loading, currentFact, cancelSearch } = useSearchActivities()
 
 // Location caching constants
 const LOCATION_CACHE_KEY = 'schoolsout_user_location'
@@ -137,6 +138,12 @@ onMounted(() => {
     window.history.replaceState({ page: 'landing' }, '', '')
   } else if (window.history.state.page === 'app') {
     showLanding.value = false
+    // Restore cached location if available (e.g., after page refresh)
+    const cachedLocation = getCachedLocation()
+    if (cachedLocation) {
+      userLocation.value = cachedLocation
+      console.log('✅ Restored cached location on page load:', cachedLocation)
+    }
   }
   
   // Don't request location on mount - let user click the button if they want it
@@ -167,15 +174,25 @@ const requestUserLocation = async () => {
         const { latitude, longitude } = position.coords
         console.log('✅ Geolocation SUCCESS - Location obtained:', latitude, longitude)
         
-        // Perform reverse geocoding to get suburb/city name
-        const { suburb, state } = await reverseGeocode(latitude, longitude)
-        
-        const newLocation = { lat: latitude, lon: longitude, city: suburb, state }
+        // Set location immediately with coordinates, then perform reverse geocoding in background
+        const newLocation = { lat: latitude, lon: longitude, city: 'Current Location', state: '' }
         userLocation.value = newLocation
         
-        // Cache the location for future use
+        // Cache the location immediately
         cacheLocation(newLocation)
-        console.log('✅ Location obtained:', latitude, longitude, 'Suburb:', suburb)
+        
+        // Perform reverse geocoding asynchronously in the background (don't await)
+        reverseGeocode(latitude, longitude).then(({ suburb, state }) => {
+          // Update location with actual suburb/city name once geocoding completes
+          const updatedLocation = { lat: latitude, lon: longitude, city: suburb, state }
+          userLocation.value = updatedLocation
+          cacheLocation(updatedLocation)
+          console.log('✅ Location updated with suburb:', suburb)
+        }).catch((error) => {
+          console.warn('⚠️ Reverse geocoding failed, using default location:', error)
+        })
+        
+        console.log('✅ Location obtained:', latitude, longitude)
       },
       (error) => {
         const errorInfo = {
@@ -203,9 +220,9 @@ const requestUserLocation = async () => {
         userLocation.value = null
       },
       {
-        enableHighAccuracy: false,
-        timeout: 15000, // 15 second timeout for geolocation API (increased for better reliability)
-        maximumAge: 600000 // Accept cached position up to 10 minutes old
+        enableHighAccuracy: false, // Faster, uses Wi-Fi/Cell towers instead of GPS
+        timeout: 10000, // Wait up to 10 seconds (reduced from 15s for faster failure detection)
+        maximumAge: 60000 // Accept a location cached in the last minute (reduced from 10 minutes)
       }
     )
   } else {
@@ -239,6 +256,14 @@ const enterApp = () => {
 
   // Request user location
   requestUserLocation()
+  
+  // Focus on search input after page renders
+  setTimeout(() => {
+    const searchInput = document.querySelector('.search-input')
+    if (searchInput) {
+      searchInput.focus()
+    }
+  }, 0)
 }
 
 const goToLanding = () => {
@@ -315,6 +340,13 @@ const handleCategorySearch = (query) => {
 }
 
 const handleClearSearch = () => {
+  searchQuery.value = ''
+  hasSearched.value = false
+  activities.value = []
+}
+
+const handleCancelSearch = () => {
+  cancelSearch()
   searchQuery.value = ''
   hasSearched.value = false
   activities.value = []

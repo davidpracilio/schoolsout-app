@@ -6,6 +6,7 @@
           stroke="#999" stroke-width="2" stroke-linecap="round"/>
       </svg>
       <input 
+        ref="searchInput"
         type="text"
         class="search-input"
         :value="modelValue"
@@ -26,12 +27,12 @@
       </button>
     </div>
     <button 
-      @click="modelValue.trim() && handleSearch()"
+      @click="loading ? handleCancel() : (modelValue.trim() && handleSearch())"
       class="search-button"
-      :class="{ 'searching': loading }"
-      aria-label="Search"
+      :class="{ 'searching': loading, 'cancel': loading }"
+      aria-label="Search or Cancel"
     >
-      {{ loading ? 'Searching...' : 'Search' }}
+      {{ loading ? 'Cancel' : 'Search' }}
     </button>
   </div>
 </template>
@@ -58,35 +59,41 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'search', 'request-location'])
+const emit = defineEmits(['update:modelValue', 'search', 'request-location', 'cancel'])
 
-const placeholderTexts = [
-  'fun activities for kids around perth',
-  'school holiday programs for teenagers in sydney',
-  'outdoor drop and leave activities for kids in melbourne',
-  'indoor activities for preschoolers in brisbane',
-  'family-friendly museums and attractions in canberra',
-  'beach activities and water sports for kids on the gold coast',
-  'creative workshops and art classes for children in adelaide',
-  'nature and wildlife experiences in hobart'
-]
+// const placeholderTexts = [
+//   'fun activities for kids around perth',
+//   'school holiday programs for teenagers in sydney',
+//   'outdoor drop and leave activities for kids in melbourne',
+//   'indoor activities for preschoolers in brisbane',
+//   'family-friendly museums and attractions in canberra',
+//   'beach activities and water sports for kids on the gold coast',
+//   'creative workshops and art classes for children in adelaide',
+//   'nature and wildlife experiences in hobart'
+// ]
 
-const currentPlaceholder = ref(placeholderTexts[0])
-let placeholderIndex = 0
-let intervalId = null
+const searchInput = ref(null)
+const currentPlaceholder = ref('')
+// let placeholderIndex = 0
+// let intervalId = null
 
 onMounted(() => {
-  intervalId = setInterval(() => {
-    placeholderIndex = (placeholderIndex + 1) % placeholderTexts.length
-    currentPlaceholder.value = placeholderTexts[placeholderIndex]
-  }, 6000)
+  // Focus on the search input when component mounts
+  if (searchInput.value) {
+    searchInput.value.focus()
+  }
+  // Commented out placeholder cycling
+  // intervalId = setInterval(() => {
+  //   placeholderIndex = (placeholderIndex + 1) % placeholderTexts.length
+  //   currentPlaceholder.value = placeholderTexts[placeholderIndex]
+  // }, 6000)
 })
 
-onUnmounted(() => {
-  if (intervalId) {
-    clearInterval(intervalId)
-  }
-})
+// onUnmounted(() => {
+//   if (intervalId) {
+//     clearInterval(intervalId)
+//   }
+// })
 
 const updateValue = (event) => {
   emit('update:modelValue', event.target.value)
@@ -102,6 +109,10 @@ const clearSearch = () => {
 
 const requestLocation = () => {
   emit('request-location')
+}
+
+const handleCancel = () => {
+  emit('cancel')
 }
 </script>
 
@@ -207,7 +218,7 @@ const requestLocation = () => {
 
 .search-button {
   display: block;
-  margin: 24px auto 0;
+  margin: 16px auto 0;
   padding: 10px 20px;
   background-color: #4EAFD9;
   color: white;
@@ -229,9 +240,17 @@ const requestLocation = () => {
   background-color: #5BB8D6; /* Slightly darker hover state for searching button */
 }
 
+.search-button.cancel {
+  background-color: #F87171; /* Lighter red background for cancel button */
+}
+
+.search-button.cancel:hover {
+  background-color: #EF4444; /* Darker red on hover */
+}
+
 @media (min-width: 768px) {
   .search-bar-container {
-    padding: 8px 8px 16px;
+    padding: 8px 8px 14px;
   }
 }
 </style>
