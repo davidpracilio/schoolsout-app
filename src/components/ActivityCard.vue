@@ -26,6 +26,14 @@
           <span class="meta-text">{{ (activity.price && !activity.price.includes('Not available') && !activity.price.includes('Not specified')) ? activity.price : 'Check the website' }}</span>
         </span>
       </div>
+
+      <!-- Tags Section -->
+      <div v-if="displayTags().length > 0" class="tags-container">
+        <span v-for="tag in displayTags()" :key="tag.id" class="tag" :title="tag.description">
+          <span class="tag-emoji">{{ tag.emoji }}</span>
+          <span class="tag-label">{{ tag.label }}</span>
+        </span>
+      </div>
       <span class="click-indicator">↗</span>
     </div>
     
@@ -46,6 +54,8 @@
 </template>
 
 <script setup>
+import { formatTagsForDisplay } from '../data/activityTags.js'
+
 const { activity } = defineProps({
   activity: {
     type: Object,
@@ -54,6 +64,16 @@ const { activity } = defineProps({
 })
 
 defineEmits(['toggle-favorite', 'click'])
+
+const displayTags = () => {
+  if (!activity.tags || !Array.isArray(activity.tags)) {
+    return []
+  }
+  
+  // Tags from backend are tag IDs (strings like "school_kids", "indoor")
+  // formatTagsForDisplay expects an array of tag IDs and returns tag objects
+  return formatTagsForDisplay(activity.tags, 4)
+}
 
 const getLocationDisplay = () => {
   if (!activity.location) {
@@ -243,6 +263,46 @@ const handleCardClick = () => {
 
 .visit-button:hover {
   background-color: #3a8fb8;
+}
+
+/* Tags Container and Styling */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E0E0E0;
+  justify-content: flex-end;
+  padding-right: 22px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fb9b64;
+  color: #FFFFFF;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  width: 70px;
+  justify-content: center;
+}
+
+.tag-emoji {
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tag-label {
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (min-width: 768px) {

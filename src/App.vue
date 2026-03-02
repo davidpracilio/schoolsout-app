@@ -4,6 +4,11 @@
       v-if="showLanding"
       @enter="enterApp"
     />
+    <OnboardingCarousel
+      v-else-if="showOnboarding"
+      :is-open="showOnboarding"
+      @complete="completeOnboarding"
+    />
     <template v-else>
       <AppHeader @go-home="goToLanding" />
       <main class="main-content">
@@ -44,13 +49,18 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import LandingPage from './components/LandingPage.vue'
+import OnboardingCarousel from './components/OnboardingCarousel.vue'
 import AppHeader from './components/AppHeader.vue'
 import SearchBar from './components/SearchBar.vue'
 // import FilterButtons from './components/FilterButtons.vue'
 import ActivityList from './components/ActivityList.vue'
 import { useSearchActivities } from './composables/useSearchActivities'
 
+// Onboarding configuration - set to false to always show onboarding, true to show only once
+const SHOW_ONBOARDING_ONCE = false
+
 const showLanding = ref(true)
+const showOnboarding = ref(false)
 const searchQuery = ref('')
 // const activeFilter = ref('distance')
 const isSearching = ref(false)
@@ -58,6 +68,9 @@ const hasSearched = ref(false)
 const userLocation = ref(null)
 
 const { fetchActivities, loading, currentFact, cancelSearch } = useSearchActivities()
+
+// Onboarding cache constants
+const ONBOARDING_CACHE_KEY = 'schoolsout_onboarding_seen'
 
 // Location caching constants
 const LOCATION_CACHE_KEY = 'schoolsout_user_location'
@@ -95,6 +108,29 @@ const cacheLocation = (location) => {
     console.log('💾 Location cached:', location)
   } catch (error) {
     console.error('Error caching location:', error)
+  }
+}
+
+// Helper function to check if user has seen onboarding
+const hasSeenOnboarding = () => {
+  if (!SHOW_ONBOARDING_ONCE) {
+    return false
+  }
+  try {
+    return localStorage.getItem(ONBOARDING_CACHE_KEY) === 'true'
+  } catch (error) {
+    console.error('Error checking onboarding cache:', error)
+    return false
+  }
+}
+
+// Helper function to mark onboarding as seen
+const markOnboardingAsSeen = () => {
+  try {
+    localStorage.setItem(ONBOARDING_CACHE_KEY, 'true')
+    console.log('✅ Onboarding marked as seen')
+  } catch (error) {
+    console.error('Error saving onboarding cache:', error)
   }
 }
 
@@ -249,6 +285,20 @@ const handlePopState = (event) => {
 
 const enterApp = () => {
   showLanding.value = false
+  
+  // Show onboarding if user hasn't seen it before
+  if (!hasSeenOnboarding()) {
+    showOnboarding.value = true
+  } else {
+    // Skip directly to app if onboarding has been seen
+    completeOnboarding()
+  }
+}
+
+const completeOnboarding = () => {
+  showOnboarding.value = false
+  markOnboardingAsSeen()
+  
   activities.value = []
   searchQuery.value = ''
   hasSearched.value = false
@@ -304,7 +354,10 @@ const handleSearch = async () => {
         ageRange: activity.ageRange,
         date: activity.date,
         price: activity.price,
-        bookingUrl: activity.bookingUrl
+        bookingUrl: activity.bookingUrl,
+        // Tags from backend API - now available in the tags key
+        // Backend returns tags as an array of tag IDs (e.g., ["school_kids", "indoor"])
+        tags: activity.tags || []
       }))
       console.log('Updated activities:', activities.value)
       // Push new history state for search results
