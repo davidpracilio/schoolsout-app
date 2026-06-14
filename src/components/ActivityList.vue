@@ -444,7 +444,7 @@ const handleModalFavorite = () => {
 /* No Results State Styles */
 .no-results-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px 20px 40px;
   animation: fadeIn 0.5s ease-in;
 }
 
@@ -460,7 +460,7 @@ const handleModalFavorite = () => {
 }
 
 .no-results-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #333;
   margin-bottom: 12px;

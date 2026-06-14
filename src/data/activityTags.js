@@ -169,6 +169,13 @@ export const ACTIVITY_TAGS = {
     category: TAG_CATEGORIES.ENVIRONMENT,
     description: 'Splash pads, pools, water play areas'
   },
+  SPORTS: {
+    id: 'sports',
+    emoji: '🏅',
+    label: 'Sports',
+    category: TAG_CATEGORIES.ENVIRONMENT,
+    description: 'Organised sports, athletics, team activities'
+  },
   DROP_AND_LEAVE: {
     id: 'drop_and_leave',
     emoji: '🚪',

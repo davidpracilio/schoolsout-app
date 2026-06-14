@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { searchFacts } from '../data/searchFacts.js'
+import { getAppCheckToken } from '../firebase.js'
 
 const API_ENDPOINT = 'https://searchactivities-27dbbqr3ga-uc.a.run.app'
 // const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes - temporarily disabled
@@ -91,20 +92,20 @@ export function useSearchActivities() {
           const locationIndicators = /\b(in|near|at|around|close to|nearby|within|located in|based in|from)\s+/i
           const hasLocationInQuery = locationIndicators.test(queryLower)
           
-          if (location && location.city && !hasLocationInQuery) {
-            // Use the suburb/city from reverse geocoding
-            const locationString = location.state 
-              ? `${location.city}, ${location.state}` 
-              : location.city
-            requestBody.location = locationString
-            console.log('Adding location to search:', locationString)
+          if (location && location.trim() && !hasLocationInQuery) {
+            requestBody.location = location.trim()
+            console.log('Adding location to search:', location.trim())
+          }
+
+          const headers = { 'Content-Type': 'application/json' }
+          const appCheckToken = await getAppCheckToken()
+          if (appCheckToken) {
+            headers['X-Firebase-AppCheck'] = appCheckToken
           }
 
           const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers,
             body: JSON.stringify(requestBody),
             signal: abortController.signal
           })

@@ -2,10 +2,10 @@
   <div class="search-bar-container">
     <div class="search-bar">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" 
+        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
           stroke="#999" stroke-width="2" stroke-linecap="round"/>
       </svg>
-      <input 
+      <input
         ref="searchInput"
         type="text"
         class="search-input"
@@ -15,7 +15,7 @@
         :placeholder="currentPlaceholder"
         aria-label="Search for places and activities"
       />
-      <button 
+      <button
         v-if="modelValue"
         @click="clearSearch"
         class="clear-button"
@@ -26,7 +26,56 @@
         </svg>
       </button>
     </div>
-    <button 
+
+    <div class="location-bar-wrapper" ref="locationWrapper">
+      <div class="location-bar">
+        <svg class="location-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"
+            fill="#999"/>
+        </svg>
+        <input
+          ref="locationInput"
+          type="text"
+          class="location-input"
+          :value="locationValue"
+          @input="handleLocationInput"
+          @keyup.enter="handleSearch"
+          @keyup.escape="clearSuggestions"
+          placeholder="Where?"
+          aria-label="Enter location"
+          aria-autocomplete="list"
+          autocomplete="off"
+        />
+        <button
+          v-if="locationValue"
+          @click="clearLocation"
+          class="clear-button"
+          aria-label="Clear location"
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="#999" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <ul
+        v-if="suggestions.length > 0"
+        class="autocomplete-dropdown"
+        role="listbox"
+      >
+        <li
+          v-for="suggestion in suggestions"
+          :key="suggestion.placeId"
+          class="autocomplete-item"
+          role="option"
+          @mousedown.prevent="selectSuggestion(suggestion)"
+        >
+          {{ suggestion.display }}
+        </li>
+      </ul>
+    </div>
+
+    <button
       @click="loading ? handleCancel() : (modelValue.trim() && handleSearch())"
       class="search-button"
       :class="{ 'searching': loading, 'cancel': loading }"
@@ -39,9 +88,14 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useLocationAutocomplete } from '../composables/useLocationAutocomplete'
 
 const props = defineProps({
   modelValue: {
+    type: String,
+    default: ''
+  },
+  locationValue: {
     type: String,
     default: ''
   },
@@ -52,63 +106,62 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: false
-  },
-  hasLocation: {
-    type: Boolean,
-    default: false
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'search', 'request-location', 'cancel'])
-
-// const placeholderTexts = [
-//   'fun activities for kids around perth',
-//   'school holiday programs for teenagers in sydney',
-//   'outdoor drop and leave activities for kids in melbourne',
-//   'indoor activities for preschoolers in brisbane',
-//   'family-friendly museums and attractions in canberra',
-//   'beach activities and water sports for kids on the gold coast',
-//   'creative workshops and art classes for children in adelaide',
-//   'nature and wildlife experiences in hobart'
-// ]
+const emit = defineEmits(['update:modelValue', 'update:locationValue', 'search', 'cancel'])
 
 const searchInput = ref(null)
-const currentPlaceholder = ref('')
-// let placeholderIndex = 0
-// let intervalId = null
+const locationInput = ref(null)
+const locationWrapper = ref(null)
+const currentPlaceholder = ref('What are you looking for?')
+
+const { suggestions, isLoading, search: searchLocation, clear: clearSuggestions } = useLocationAutocomplete()
 
 onMounted(() => {
-  // Focus on the search input when component mounts
   if (searchInput.value) {
     searchInput.value.focus()
   }
-  // Commented out placeholder cycling
-  // intervalId = setInterval(() => {
-  //   placeholderIndex = (placeholderIndex + 1) % placeholderTexts.length
-  //   currentPlaceholder.value = placeholderTexts[placeholderIndex]
-  // }, 6000)
+  document.addEventListener('click', handleClickOutside)
 })
 
-// onUnmounted(() => {
-//   if (intervalId) {
-//     clearInterval(intervalId)
-//   }
-// })
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+const handleClickOutside = (event) => {
+  if (locationWrapper.value && !locationWrapper.value.contains(event.target)) {
+    clearSuggestions()
+  }
+}
 
 const updateValue = (event) => {
   emit('update:modelValue', event.target.value)
 }
 
-const handleSearch = () => {
-  emit('search')
+const handleLocationInput = (event) => {
+  const val = event.target.value
+  emit('update:locationValue', val)
+  searchLocation(val)
+}
+
+const selectSuggestion = (suggestion) => {
+  emit('update:locationValue', suggestion.display)
+  clearSuggestions()
 }
 
 const clearSearch = () => {
   emit('update:modelValue', '')
 }
 
-const requestLocation = () => {
-  emit('request-location')
+const clearLocation = () => {
+  emit('update:locationValue', '')
+  clearSuggestions()
+}
+
+const handleSearch = () => {
+  clearSuggestions()
+  emit('search')
 }
 
 const handleCancel = () => {
@@ -125,7 +178,8 @@ const handleCancel = () => {
   z-index: 100;
 }
 
-.search-bar {
+.search-bar,
+.location-bar {
   max-width: 580px;
   margin: 0 auto;
   position: relative;
@@ -137,15 +191,34 @@ const handleCancel = () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.search-icon {
+.location-bar-wrapper {
+  max-width: 580px;
+  margin: 8px auto 0;
+  position: relative;
+}
+
+.location-bar {
+  max-width: 100%;
+  margin: 0;
+}
+
+.search-icon,
+.location-icon {
   position: absolute;
   left: 16px;
   width: 20px;
   height: 20px;
   pointer-events: none;
+  flex-shrink: 0;
 }
 
-.search-input {
+.location-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.search-input,
+.location-input {
   width: 100%;
   padding: 14px 80px 14px 48px;
   border: none;
@@ -155,11 +228,13 @@ const handleCancel = () => {
   outline: none;
 }
 
-.search-input::placeholder {
+.search-input::placeholder,
+.location-input::placeholder {
   color: #999;
 }
 
-.search-input:focus {
+.search-input:focus,
+.location-input:focus {
   box-shadow: 0 0 0 2px rgba(78, 175, 217, 0.3);
 }
 
@@ -186,34 +261,32 @@ const handleCancel = () => {
   height: 16px;
 }
 
-.location-indicator {
+.autocomplete-dropdown {
   position: absolute;
-  right: 40px; /* Position to the left of clear button */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  color: #ccc; /* Gray when inactive */
-  transition: color 0.2s;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #D0D0D0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 200;
+}
+
+.autocomplete-item {
+  padding: 10px 16px;
+  font-size: 15px;
+  color: #333;
   cursor: pointer;
+  transition: background-color 0.15s;
 }
 
-.location-indicator:hover {
-  color: #666; /* Darker gray on hover */
-}
-
-.location-indicator.active {
-  color: #4EAFD9; /* Blue when location is available */
-}
-
-.location-indicator.active:hover {
-  color: #3a9bc7; /* Darker blue on hover */
-}
-
-.location-indicator svg {
-  width: 16px;
-  height: 16px;
+.autocomplete-item:hover {
+  background-color: #f0f8fd;
+  color: #4EAFD9;
 }
 
 .search-button {
@@ -228,24 +301,24 @@ const handleCancel = () => {
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
-  width: 120px; /* Fixed width to maintain consistent button size */
-  text-align: center; /* Center text within fixed width */
+  width: 120px;
+  text-align: center;
 }
 
 .search-button.searching {
-  background-color: #7BC9E6; /* Lighter blue while searching */
+  background-color: #7BC9E6;
 }
 
 .search-button.searching:hover {
-  background-color: #5BB8D6; /* Slightly darker hover state for searching button */
+  background-color: #5BB8D6;
 }
 
 .search-button.cancel {
-  background-color: #F87171; /* Lighter red background for cancel button */
+  background-color: #F87171;
 }
 
 .search-button.cancel:hover {
-  background-color: #EF4444; /* Darker red on hover */
+  background-color: #EF4444;
 }
 
 @media (min-width: 768px) {

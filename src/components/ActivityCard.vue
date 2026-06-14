@@ -281,15 +281,15 @@ const handleCardClick = () => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: #fb9b64;
+  background-color: #f5a578;
   color: #FFFFFF;
   padding: 5px 8px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  width: 70px;
+  width: 68px;
   justify-content: center;
 }
 

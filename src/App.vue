@@ -14,15 +14,13 @@
       <main class="main-content">
         <div class="page-header">
           <h2 class="intro-title">Search for activities</h2>
-          <p class="intro-description">Enter an activity type and a location to begin</p>
         </div>
-        <SearchBar 
+        <SearchBar
           v-model="searchQuery"
+          v-model:locationValue="userLocation"
           :has-searched="hasSearched"
           :loading="loading"
-          :has-location="!!userLocation"
           @search="handleSearch"
-          @request-location="requestUserLocation"
           @cancel="handleCancelSearch"
         />
         <!-- Temporarily commented out - filter buttons
@@ -62,54 +60,14 @@ const SHOW_ONBOARDING_ONCE = false
 const showLanding = ref(true)
 const showOnboarding = ref(false)
 const searchQuery = ref('')
-// const activeFilter = ref('distance')
 const isSearching = ref(false)
 const hasSearched = ref(false)
-const userLocation = ref(null)
+const userLocation = ref('')
 
 const { fetchActivities, loading, currentFact, cancelSearch } = useSearchActivities()
 
 // Onboarding cache constants
 const ONBOARDING_CACHE_KEY = 'schoolsout_onboarding_seen'
-
-// Location caching constants
-const LOCATION_CACHE_KEY = 'schoolsout_user_location'
-const LOCATION_CACHE_DURATION = 10 * 60 * 1000 // 10 minutes in milliseconds
-
-// Helper function to get cached location
-const getCachedLocation = () => {
-  try {
-    const cached = localStorage.getItem(LOCATION_CACHE_KEY)
-    if (cached) {
-      const { location, timestamp } = JSON.parse(cached)
-      const now = Date.now()
-      // Check if cache is still valid
-      if (now - timestamp < LOCATION_CACHE_DURATION) {
-        console.log('✅ Using cached location:', location)
-        return location
-      } else {
-        // Cache expired, remove it
-        localStorage.removeItem(LOCATION_CACHE_KEY)
-      }
-    }
-  } catch (error) {
-    console.error('Error reading location cache:', error)
-  }
-  return null
-}
-
-// Helper function to save location to cache
-const cacheLocation = (location) => {
-  try {
-    localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify({
-      location,
-      timestamp: Date.now()
-    }))
-    console.log('💾 Location cached:', location)
-  } catch (error) {
-    console.error('Error caching location:', error)
-  }
-}
 
 // Helper function to check if user has seen onboarding
 const hasSeenOnboarding = () => {
@@ -134,138 +92,19 @@ const markOnboardingAsSeen = () => {
   }
 }
 
-// Helper function to reverse geocode coordinates to get suburb/city
-const reverseGeocode = async (latitude, longitude) => {
-  try {
-    // Using OpenStreetMap's Nominatim API (free, no API key required)
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-      {
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
-    )
-    
-    if (!response.ok) {
-      throw new Error(`Geocoding API error: ${response.status}`)
-    }
-    
-    const data = await response.json()
-    console.log('🗺️ Reverse geocoding response:', data)
-    
-    // Extract suburb/city from the response
-    // Nominatim returns address with various levels: suburb, city, town, village, etc.
-    const address = data.address || {}
-    const suburb = address.suburb || address.town || address.village || address.city || 'Unknown Location'
-    const state = address.state || ''
-    
-    return { suburb, state }
-  } catch (error) {
-    console.error('❌ Reverse geocoding error:', error)
-    return { suburb: 'Current Location', state: '' }
-  }
-}
-
 // Initialize with landing page state
 onMounted(() => {
-  // Set initial state if not already set
   if (!window.history.state) {
     window.history.replaceState({ page: 'landing' }, '', '')
   } else if (window.history.state.page === 'app') {
     showLanding.value = false
-    // Restore cached location if available (e.g., after page refresh)
-    const cachedLocation = getCachedLocation()
-    if (cachedLocation) {
-      userLocation.value = cachedLocation
-      console.log('✅ Restored cached location on page load:', cachedLocation)
-    }
   }
-  
-  // Don't request location on mount - let user click the button if they want it
-  // This avoids permission prompts and timeouts on page load
-  
-  // Listen for browser back/forward buttons
   window.addEventListener('popstate', handlePopState)
 })
 
 onUnmounted(() => {
   window.removeEventListener('popstate', handlePopState)
 })
-
-const requestUserLocation = async () => {
-  console.log('Requesting user location...')
-  
-  // Check for cached location first
-  const cachedLocation = getCachedLocation()
-  if (cachedLocation) {
-    userLocation.value = cachedLocation
-    return
-  }
-  
-  if (navigator.geolocation) {
-    console.log('Geolocation API available, requesting position...')
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords
-        console.log('✅ Geolocation SUCCESS - Location obtained:', latitude, longitude)
-        
-        // Set location immediately with coordinates, then perform reverse geocoding in background
-        const newLocation = { lat: latitude, lon: longitude, city: 'Current Location', state: '' }
-        userLocation.value = newLocation
-        
-        // Cache the location immediately
-        cacheLocation(newLocation)
-        
-        // Perform reverse geocoding asynchronously in the background (don't await)
-        reverseGeocode(latitude, longitude).then(({ suburb, state }) => {
-          // Update location with actual suburb/city name once geocoding completes
-          const updatedLocation = { lat: latitude, lon: longitude, city: suburb, state }
-          userLocation.value = updatedLocation
-          cacheLocation(updatedLocation)
-          console.log('✅ Location updated with suburb:', suburb)
-        }).catch((error) => {
-          console.warn('⚠️ Reverse geocoding failed, using default location:', error)
-        })
-        
-        console.log('✅ Location obtained:', latitude, longitude)
-      },
-      (error) => {
-        const errorInfo = {
-          code: error.code,
-          message: error.message,
-          codeMeaning: {
-            1: 'PERMISSION_DENIED',
-            2: 'POSITION_UNAVAILABLE', 
-            3: 'TIMEOUT'
-          }[error.code] || 'UNKNOWN'
-        }
-        
-        if (error.code === 3) {
-          // Timeout - log as warning since this is common when user hasn't granted permission yet
-          console.warn('⚠️ Geolocation TIMEOUT - User may need to grant permission or location services may be slow.', errorInfo)
-          // Try to use cached location as fallback
-          const fallbackLocation = getCachedLocation()
-          if (fallbackLocation) {
-            console.log('⚠️ Using cached location as fallback after timeout')
-            userLocation.value = fallbackLocation
-          }
-        } else {
-          console.error('❌ Geolocation ERROR:', errorInfo)
-        }
-        userLocation.value = null
-      },
-      {
-        enableHighAccuracy: false, // Faster, uses Wi-Fi/Cell towers instead of GPS
-        timeout: 10000, // Wait up to 10 seconds (reduced from 15s for faster failure detection)
-        maximumAge: 60000 // Accept a location cached in the last minute (reduced from 10 minutes)
-      }
-    )
-  } else {
-    console.log('❌ Geolocation API not available in this browser')
-    userLocation.value = null
-  }
-}
 
 const handlePopState = (event) => {
   if (event.state && event.state.page === 'landing') {
@@ -295,19 +134,15 @@ const enterApp = () => {
   }
 }
 
-const completeOnboarding = () => {
+const completeOnboarding = (selectedTagLabels = []) => {
   showOnboarding.value = false
   markOnboardingAsSeen()
-  
+
   activities.value = []
-  searchQuery.value = ''
+  searchQuery.value = selectedTagLabels.length ? selectedTagLabels.join(', ') : ''
   hasSearched.value = false
   window.history.pushState({ page: 'app' }, '', '')
 
-  // Request user location
-  requestUserLocation()
-  
-  // Focus on search input after page renders
   setTimeout(() => {
     const searchInput = document.querySelector('.search-input')
     if (searchInput) {
@@ -394,6 +229,7 @@ const handleCategorySearch = (query) => {
 
 const handleClearSearch = () => {
   searchQuery.value = ''
+  userLocation.value = ''
   hasSearched.value = false
   activities.value = []
 }
@@ -401,6 +237,7 @@ const handleClearSearch = () => {
 const handleCancelSearch = () => {
   cancelSearch()
   searchQuery.value = ''
+  userLocation.value = ''
   hasSearched.value = false
   activities.value = []
 }
@@ -419,30 +256,24 @@ const handleCancelSearch = () => {
 .page-header {
   max-width: 600px;
   margin: 0 auto;
-  padding: 32px 16px 24px;
+  padding: 24px 16px 8px;
   text-align: center;
 }
 
 .intro-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 12px;
-}
-
-.intro-description {
-  font-size: 16px;
-  color: #555;
-  line-height: 1.5;
+  margin-bottom: 0;
 }
 
 @media (min-width: 768px) {
   .page-header {
-    padding: 20px 16px 20px;
+    padding: 16px 16px 8px;
   }
 
   .intro-title {
-    font-size: 28px;
+    font-size: 22px;
   }
 }
 </style>
