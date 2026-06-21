@@ -46,10 +46,15 @@ export function useLocationAutocomplete() {
         })
         if (!response.ok) throw new Error(`Nominatim error: ${response.status}`)
         const results = await response.json()
-        suggestions.value = results.map((r) => ({
-          display: formatSuggestion(r),
-          placeId: r.place_id
-        }))
+        const seen = new Set()
+        suggestions.value = results.reduce((acc, r) => {
+          const display = formatSuggestion(r)
+          if (!seen.has(display)) {
+            seen.add(display)
+            acc.push({ display, placeId: r.place_id })
+          }
+          return acc
+        }, [])
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error('Location autocomplete error:', err)

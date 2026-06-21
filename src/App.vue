@@ -236,8 +236,6 @@ const handleClearSearch = () => {
 
 const handleCancelSearch = () => {
   cancelSearch()
-  searchQuery.value = ''
-  userLocation.value = ''
   hasSearched.value = false
   activities.value = []
 }
