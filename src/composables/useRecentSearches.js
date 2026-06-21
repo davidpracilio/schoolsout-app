@@ -21,5 +21,13 @@ export function useRecentSearches() {
     } catch {}
   }
 
-  return { load, save }
+  const remove = (index) => {
+    const searches = load()
+    searches.splice(index, 1)
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(searches))
+    } catch {}
+  }
+
+  return { load, save, remove }
 }

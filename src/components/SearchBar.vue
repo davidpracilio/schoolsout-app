@@ -47,6 +47,7 @@
           </svg>
           <span class="recent-query">{{ item.query }}</span>
           <span v-if="item.location" class="recent-location">— {{ item.location }}</span>
+          <button class="recent-remove" @mousedown.prevent.stop="$emit('remove-recent', i)" aria-label="Remove">×</button>
         </li>
       </ul>
     </div>
@@ -137,7 +138,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'update:locationValue', 'search', 'cancel', 'select-recent'])
+const emit = defineEmits(['update:modelValue', 'update:locationValue', 'search', 'cancel', 'select-recent', 'remove-recent'])
 
 const searchInput = ref(null)
 const locationInput = ref(null)
@@ -325,7 +326,7 @@ const selectRecentSearch = (item) => {
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  font-size: 15px;
+  font-size: 13px;
   color: #333;
   cursor: pointer;
   transition: background-color 0.15s;
@@ -347,7 +348,24 @@ const selectRecentSearch = (item) => {
 
 .recent-location {
   color: #999;
-  font-size: 14px;
+  font-size: 12px;
+  flex: 1;
+}
+
+.recent-remove {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.recent-remove:hover {
+  color: #999;
 }
 
 .autocomplete-dropdown {

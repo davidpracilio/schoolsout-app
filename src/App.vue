@@ -46,6 +46,7 @@
             @search="handleSearch"
             @cancel="handleCancelSearch"
             @select-recent="handleSelectRecent"
+          @remove-recent="handleRemoveRecent"
           />
           <ActivityList
             :activities="activities"
@@ -85,7 +86,7 @@ const hasSearched = ref(false)
 const userLocation = ref('')
 
 const { fetchActivities, loading, currentFact, cancelSearch } = useSearchActivities()
-const { load: loadRecentSearches, save: saveRecentSearch } = useRecentSearches()
+const { load: loadRecentSearches, save: saveRecentSearch, remove: removeRecentSearch } = useRecentSearches()
 const recentSearches = ref([])
 const { load: loadSaved, save: saveActivity, remove: removeActivity, isSaved } = useSavedActivities()
 const savedActivities = ref([])
@@ -273,6 +274,11 @@ const handleClearSearch = () => {
 
 const handleShowSaved = () => {
   showSaved.value = true
+}
+
+const handleRemoveRecent = (index) => {
+  removeRecentSearch(index)
+  recentSearches.value = loadRecentSearches()
 }
 
 const handleSelectRecent = ({ query, location }) => {
