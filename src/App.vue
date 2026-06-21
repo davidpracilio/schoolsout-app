@@ -10,37 +10,53 @@
       @complete="completeOnboarding"
     />
     <template v-else>
-      <AppHeader @go-home="goToLanding" />
+      <AppHeader @go-home="goToLanding" @show-saved="handleShowSaved" />
       <main class="main-content">
-        <div class="page-header">
-          <h2 class="intro-title">What are you looking for and where?</h2>
-        </div>
-        <SearchBar
-          v-model="searchQuery"
-          v-model:locationValue="userLocation"
-          :has-searched="hasSearched"
-          :loading="loading"
-          :recent-searches="recentSearches"
-          @search="handleSearch"
-          @cancel="handleCancelSearch"
-          @select-recent="handleSelectRecent"
-        />
-        <!-- Temporarily commented out - filter buttons
-        <FilterButtons 
-          v-if="activities.length > 0"
-          :activeFilter="activeFilter"
-          @filter-change="handleFilterChange"
-        />
-        -->
-        <ActivityList 
-          :activities="activities"
-          :loading="loading"
-          :has-searched="hasSearched"
-          :current-fact="currentFact"
-          @toggle-favorite="handleToggleFavorite"
-          @search-category="handleCategorySearch"
-          @clear-search="handleClearSearch"
-        />
+        <!-- Saved view -->
+        <template v-if="showSaved">
+          <div class="page-header saved-header">
+            <button class="back-button" @click="showSaved = false">← Back</button>
+            <h2 class="intro-title">Saved activities</h2>
+          </div>
+          <div v-if="savedActivities.length === 0" class="empty-saved">
+            <p class="empty-saved-text">No saved activities yet. Tap the ♡ on any activity to save it.</p>
+          </div>
+          <ActivityList
+            v-else
+            :activities="savedActivities"
+            :loading="false"
+            :has-searched="true"
+            current-fact=""
+            @toggle-favorite="handleToggleFavorite"
+            @clear-search="showSaved = false"
+          />
+        </template>
+
+        <!-- Search view -->
+        <template v-else>
+          <div class="page-header">
+            <h2 class="intro-title">What are you looking for and where?</h2>
+          </div>
+          <SearchBar
+            v-model="searchQuery"
+            v-model:locationValue="userLocation"
+            :has-searched="hasSearched"
+            :loading="loading"
+            :recent-searches="recentSearches"
+            @search="handleSearch"
+            @cancel="handleCancelSearch"
+            @select-recent="handleSelectRecent"
+          />
+          <ActivityList
+            :activities="activities"
+            :loading="loading"
+            :has-searched="hasSearched"
+            :current-fact="currentFact"
+            @toggle-favorite="handleToggleFavorite"
+            @search-category="handleCategorySearch"
+            @clear-search="handleClearSearch"
+          />
+        </template>
       </main>
     </template>
   </div>
@@ -56,6 +72,7 @@ import SearchBar from './components/SearchBar.vue'
 import ActivityList from './components/ActivityList.vue'
 import { useSearchActivities } from './composables/useSearchActivities'
 import { useRecentSearches } from './composables/useRecentSearches'
+import { useSavedActivities } from './composables/useSavedActivities'
 
 // Onboarding configuration - set to false to always show onboarding, true to show only once
 const SHOW_ONBOARDING_ONCE = false
@@ -70,6 +87,9 @@ const userLocation = ref('')
 const { fetchActivities, loading, currentFact, cancelSearch } = useSearchActivities()
 const { load: loadRecentSearches, save: saveRecentSearch } = useRecentSearches()
 const recentSearches = ref([])
+const { load: loadSaved, save: saveActivity, remove: removeActivity, isSaved } = useSavedActivities()
+const savedActivities = ref([])
+const showSaved = ref(false)
 
 // Onboarding cache constants
 const ONBOARDING_CACHE_KEY = 'schoolsout_onboarding_seen'
@@ -106,6 +126,7 @@ onMounted(() => {
   }
   window.addEventListener('popstate', handlePopState)
   recentSearches.value = loadRecentSearches()
+  savedActivities.value = loadSaved()
 })
 
 onUnmounted(() => {
@@ -159,6 +180,7 @@ const completeOnboarding = (selectedTagLabels = []) => {
 
 const goToLanding = () => {
   showLanding.value = true
+  showSaved.value = false
   hasSearched.value = false
   window.history.pushState({ page: 'landing' }, '', '')
 }
@@ -224,10 +246,17 @@ const handleFilterChange = (filter) => {
 }
 
 const handleToggleFavorite = (activityId) => {
-  const activity = activities.value.find(a => a.id === activityId)
-  if (activity) {
-    activity.isFavorite = !activity.isFavorite
+  const saved = isSaved(activityId)
+  if (saved) {
+    removeActivity(activityId)
+  } else {
+    const activity = activities.value.find(a => a.id === activityId)
+      || savedActivities.value.find(a => a.id === activityId)
+    if (activity) saveActivity(activity)
   }
+  const activity = activities.value.find(a => a.id === activityId)
+  if (activity) activity.isFavorite = !saved
+  savedActivities.value = loadSaved()
 }
 
 const handleCategorySearch = (query) => {
@@ -240,6 +269,10 @@ const handleClearSearch = () => {
   userLocation.value = ''
   hasSearched.value = false
   activities.value = []
+}
+
+const handleShowSaved = () => {
+  showSaved.value = true
 }
 
 const handleSelectRecent = ({ query, location }) => {
@@ -277,6 +310,38 @@ const handleCancelSearch = () => {
   font-weight: 600;
   color: #6b7280;
   margin-bottom: 0;
+}
+
+.saved-header {
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  left: 16px;
+  top: calc(50% + 5px);
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.back-button:hover {
+  color: #4EAFD9;
+}
+
+.empty-saved {
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.empty-saved-text {
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 @media (min-width: 768px) {

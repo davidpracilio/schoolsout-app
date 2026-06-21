@@ -34,22 +34,22 @@
           <span class="tag-label">{{ tag.label }}</span>
         </span>
       </div>
-      <span class="click-indicator">↗</span>
     </div>
     
-    <button 
-      v-if="activity.isFavorite"
-      class="favorite-button active"
+    <button
+      class="favorite-button"
+      :class="{ active: activity.isFavorite }"
       @click.stop="$emit('toggle-favorite')"
-      aria-label="Remove from favorites"
+      :aria-label="activity.isFavorite ? 'Remove from saved' : 'Save activity'"
     >
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z" 
-          fill="#FFD700"/>
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+          :fill="activity.isFavorite ? '#F87171' : 'none'"
+          :stroke="activity.isFavorite ? '#F87171' : '#ccc'"
+          stroke-width="1.5"
+        />
       </svg>
     </button>
-    
-    <!-- <a v-if="activity.bookingUrl && !activity.bookingUrl.includes('example.com')" class="visit-button" :href="activity.bookingUrl" target="_blank" @click.stop>Visit</a> -->
   </div>
 </template>
 
@@ -208,20 +208,22 @@ const handleCardClick = () => {
 
 .favorite-button {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  bottom: 8px;
+  left: 14px;
   background: none;
   border: none;
-  padding: 4px;
+  padding: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s;
+  border-radius: 50%;
 }
 
 .favorite-button:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
+  background-color: #fef2f2;
 }
 
 .favorite-button:active {
@@ -229,22 +231,8 @@ const handleCardClick = () => {
 }
 
 .favorite-button svg {
-  width: 24px;
-  height: 24px;
-}
-
-.click-indicator {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  font-size: 14px;
-  color: #999;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.activity-card:hover .click-indicator {
-  opacity: 1;
+  width: 22px;
+  height: 22px;
 }
 
 .visit-button {
@@ -274,7 +262,7 @@ const handleCardClick = () => {
   padding-top: 12px;
   border-top: 1px solid #E0E0E0;
   justify-content: flex-end;
-  padding-right: 22px;
+  padding-left: 44px;
 }
 
 .tag {

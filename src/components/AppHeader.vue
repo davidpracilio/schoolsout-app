@@ -18,6 +18,14 @@
         <nav class="menu-nav">
           <a @click="handleHome" class="menu-link">Home</a>
           <a @click="handleAbout" class="menu-link">About</a>
+          <hr class="menu-divider" />
+          <a @click="handleSaved" class="menu-link menu-link--saved">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="menu-heart-icon">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                stroke="#6b7280" stroke-width="1.5" fill="none"/>
+            </svg>
+            Saved
+          </a>
         </nav>
       </div>
     </div>
@@ -44,11 +52,14 @@ const handleHome = () => {
 
 const handleAbout = () => {
   closeMenu()
-  // For now, just emit; later can show modal or navigate
-  // emit('show-about')
 }
 
-defineEmits(['go-home', 'show-about'])
+const handleSaved = () => {
+  closeMenu()
+  emit('show-saved')
+}
+
+const emit = defineEmits(['go-home', 'show-saved'])
 </script>
 
 <style scoped>
@@ -205,6 +216,33 @@ defineEmits(['go-home', 'show-about'])
 
 .menu-link:hover {
   color: #4EAFD9;
+}
+
+.menu-divider {
+  border: none;
+  border-top: 1px solid #E0E0E0;
+  margin: 8px 0;
+}
+
+.menu-link--saved {
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-link--saved:hover {
+  color: #4EAFD9;
+}
+
+.menu-link--saved:hover .menu-heart-icon path {
+  stroke: #4EAFD9;
+}
+
+.menu-heart-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
