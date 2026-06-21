@@ -20,8 +20,10 @@
           v-model:locationValue="userLocation"
           :has-searched="hasSearched"
           :loading="loading"
+          :recent-searches="recentSearches"
           @search="handleSearch"
           @cancel="handleCancelSearch"
+          @select-recent="handleSelectRecent"
         />
         <!-- Temporarily commented out - filter buttons
         <FilterButtons 
@@ -53,6 +55,7 @@ import SearchBar from './components/SearchBar.vue'
 // import FilterButtons from './components/FilterButtons.vue'
 import ActivityList from './components/ActivityList.vue'
 import { useSearchActivities } from './composables/useSearchActivities'
+import { useRecentSearches } from './composables/useRecentSearches'
 
 // Onboarding configuration - set to false to always show onboarding, true to show only once
 const SHOW_ONBOARDING_ONCE = false
@@ -65,6 +68,8 @@ const hasSearched = ref(false)
 const userLocation = ref('')
 
 const { fetchActivities, loading, currentFact, cancelSearch } = useSearchActivities()
+const { load: loadRecentSearches, save: saveRecentSearch } = useRecentSearches()
+const recentSearches = ref([])
 
 // Onboarding cache constants
 const ONBOARDING_CACHE_KEY = 'schoolsout_onboarding_seen'
@@ -100,6 +105,7 @@ onMounted(() => {
     showLanding.value = false
   }
   window.addEventListener('popstate', handlePopState)
+  recentSearches.value = loadRecentSearches()
 })
 
 onUnmounted(() => {
@@ -173,6 +179,8 @@ const handleSearch = async () => {
   activities.value = []
   hasSearched.value = true
   isSearching.value = true
+  saveRecentSearch(searchQuery.value, userLocation.value)
+  recentSearches.value = loadRecentSearches()
   try {
     const results = await fetchActivities(searchQuery.value, userLocation.value)
     console.log('API Response:', results)
@@ -232,6 +240,12 @@ const handleClearSearch = () => {
   userLocation.value = ''
   hasSearched.value = false
   activities.value = []
+}
+
+const handleSelectRecent = ({ query, location }) => {
+  searchQuery.value = query
+  userLocation.value = location
+  handleSearch()
 }
 
 const handleCancelSearch = () => {

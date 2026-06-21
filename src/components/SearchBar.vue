@@ -1,30 +1,54 @@
 <template>
   <div class="search-bar-container">
-    <div class="search-bar">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-          stroke="#999" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <input
-        ref="searchInput"
-        type="text"
-        class="search-input"
-        :value="modelValue"
-        @input="updateValue"
-        @keyup.enter="handleSearch"
-        :placeholder="currentPlaceholder"
-        aria-label="Search for places and activities"
-      />
-      <button
-        v-if="modelValue"
-        @click="clearSearch"
-        class="clear-button"
-        aria-label="Clear search"
-      >
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 6L6 18M6 6L18 18" stroke="#999" stroke-width="2" stroke-linecap="round"/>
+    <div class="search-bar-wrapper" ref="searchWrapper">
+      <div class="search-bar">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+            stroke="#999" stroke-width="2" stroke-linecap="round"/>
         </svg>
-      </button>
+        <input
+          ref="searchInput"
+          type="text"
+          class="search-input"
+          :value="modelValue"
+          @input="updateValue"
+          @keyup.enter="handleSearch"
+          @focus="searchFocused = true"
+          @blur="searchFocused = false"
+          :placeholder="currentPlaceholder"
+          aria-label="Search for places and activities"
+        />
+        <button
+          v-if="modelValue"
+          @click="clearSearch"
+          class="clear-button"
+          aria-label="Clear search"
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="#999" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <ul
+        v-if="searchFocused && !modelValue && recentSearches.length"
+        class="recent-dropdown"
+        role="listbox"
+      >
+        <li
+          v-for="(item, i) in recentSearches"
+          :key="i"
+          class="recent-item"
+          role="option"
+          @mousedown.prevent="selectRecentSearch(item)"
+        >
+          <svg class="recent-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#999" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span class="recent-query">{{ item.query }}</span>
+          <span v-if="item.location" class="recent-location">— {{ item.location }}</span>
+        </li>
+      </ul>
     </div>
 
     <div class="location-bar-wrapper" ref="locationWrapper">
@@ -106,14 +130,20 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: false
+  },
+  recentSearches: {
+    type: Array,
+    default: () => []
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'update:locationValue', 'search', 'cancel'])
+const emit = defineEmits(['update:modelValue', 'update:locationValue', 'search', 'cancel', 'select-recent'])
 
 const searchInput = ref(null)
 const locationInput = ref(null)
 const locationWrapper = ref(null)
+const searchWrapper = ref(null)
+const searchFocused = ref(false)
 const currentPlaceholder = ref('What are you looking for?')
 
 const { suggestions, isLoading, search: searchLocation, clear: clearSuggestions } = useLocationAutocomplete()
@@ -132,6 +162,9 @@ onUnmounted(() => {
 const handleClickOutside = (event) => {
   if (locationWrapper.value && !locationWrapper.value.contains(event.target)) {
     clearSuggestions()
+  }
+  if (searchWrapper.value && !searchWrapper.value.contains(event.target)) {
+    searchFocused.value = false
   }
 }
 
@@ -167,6 +200,11 @@ const handleSearch = () => {
 const handleCancel = () => {
   emit('cancel')
 }
+
+const selectRecentSearch = (item) => {
+  searchFocused.value = false
+  emit('select-recent', item)
+}
 </script>
 
 <style scoped>
@@ -180,7 +218,7 @@ const handleCancel = () => {
 
 .search-bar,
 .location-bar {
-  max-width: 580px;
+  max-width: 100%;
   margin: 0 auto;
   position: relative;
   display: flex;
@@ -189,6 +227,12 @@ const handleCancel = () => {
   border-radius: 8px;
   border: 1px solid #D0D0D0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar-wrapper {
+  max-width: 580px;
+  margin: 0 auto;
+  position: relative;
 }
 
 .location-bar-wrapper {
@@ -259,6 +303,51 @@ const handleCancel = () => {
 .clear-button svg {
   width: 16px;
   height: 16px;
+}
+
+.recent-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #D0D0D0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 200;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.recent-item:hover {
+  background-color: #f0f8fd;
+}
+
+.recent-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.recent-query {
+  font-weight: 500;
+}
+
+.recent-location {
+  color: #999;
+  font-size: 14px;
 }
 
 .autocomplete-dropdown {
