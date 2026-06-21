@@ -36,24 +36,38 @@
       </div>
     </div>
     
-    <button
-      class="favorite-button"
-      :class="{ active: activity.isFavorite }"
-      @click.stop="$emit('toggle-favorite')"
-      :aria-label="activity.isFavorite ? 'Remove from saved' : 'Save activity'"
-    >
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-          :fill="activity.isFavorite ? '#F87171' : 'none'"
-          :stroke="activity.isFavorite ? '#F87171' : '#ccc'"
-          stroke-width="1.5"
-        />
-      </svg>
-    </button>
+    <div class="card-actions">
+      <button
+        class="favorite-button"
+        :class="{ active: activity.isFavorite }"
+        @click.stop="$emit('toggle-favorite')"
+        :aria-label="activity.isFavorite ? 'Remove from saved' : 'Save activity'"
+      >
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            :fill="activity.isFavorite ? '#F87171' : 'none'"
+            :stroke="activity.isFavorite ? '#F87171' : '#ccc'"
+            stroke-width="1.5"
+          />
+        </svg>
+      </button>
+      <button
+        v-if="canShare"
+        class="share-button"
+        @click.stop="handleShare"
+        aria-label="Share activity"
+      >
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"
+            stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { formatTagsForDisplay } from '../data/activityTags.js'
 
 const { activity } = defineProps({
@@ -64,6 +78,27 @@ const { activity } = defineProps({
 })
 
 defineEmits(['toggle-favorite', 'click'])
+
+const canShare = computed(() => !!navigator.share)
+
+const handleShare = async () => {
+  const url = activity.bookingUrl &&
+    !activity.bookingUrl.includes('example.com') &&
+    !activity.bookingUrl.includes('Not available') &&
+    activity.bookingUrl.trim() !== ''
+    ? activity.bookingUrl
+    : `https://www.google.com/search?q=${encodeURIComponent(activity.name)}`
+
+  try {
+    await navigator.share({
+      title: activity.name,
+      text: activity.description,
+      url
+    })
+  } catch (err) {
+    if (err.name !== 'AbortError') console.error('Share failed:', err)
+  }
+}
 
 const displayTags = () => {
   if (!activity.tags || !Array.isArray(activity.tags)) {
@@ -206,10 +241,17 @@ const handleCardClick = () => {
   flex-shrink: 0;
 }
 
-.favorite-button {
+.card-actions {
   position: absolute;
   bottom: 8px;
   left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.favorite-button,
+.share-button {
   background: none;
   border: none;
   padding: 6px;
@@ -221,16 +263,19 @@ const handleCardClick = () => {
   border-radius: 50%;
 }
 
-.favorite-button:hover {
+.favorite-button:hover,
+.share-button:hover {
   transform: scale(1.15);
   background-color: #fef2f2;
 }
 
-.favorite-button:active {
+.favorite-button:active,
+.share-button:active {
   transform: scale(0.95);
 }
 
-.favorite-button svg {
+.favorite-button svg,
+.share-button svg {
   width: 22px;
   height: 22px;
 }
@@ -262,7 +307,7 @@ const handleCardClick = () => {
   padding-top: 12px;
   border-top: 1px solid #E0E0E0;
   justify-content: flex-end;
-  padding-left: 44px;
+  padding-left: 80px;
 }
 
 .tag {
