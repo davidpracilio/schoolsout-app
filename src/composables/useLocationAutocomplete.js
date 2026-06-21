@@ -14,8 +14,7 @@ export function useLocationAutocomplete() {
     const addr = result.address || {}
     const parts = [
       addr.suburb || addr.town || addr.village || addr.city || addr.municipality || result.name,
-      addr.state || addr.county,
-      addr.country
+      addr.state || addr.county
     ].filter(Boolean)
     return parts.join(', ')
   }
