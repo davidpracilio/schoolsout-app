@@ -172,7 +172,7 @@ const handleCancel = () => {
 <style scoped>
 .search-bar-container {
   background-color: #FFFFFF;
-  padding: 8px 16px;
+  padding: 8px 16px 20px;
   position: sticky;
   top: 72px;
   z-index: 100;
@@ -323,7 +323,7 @@ const handleCancel = () => {
 
 @media (min-width: 768px) {
   .search-bar-container {
-    padding: 8px 8px 14px;
+    padding: 8px 8px 20px;
   }
 }
 </style>

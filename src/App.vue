@@ -13,7 +13,7 @@
       <AppHeader @go-home="goToLanding" />
       <main class="main-content">
         <div class="page-header">
-          <h2 class="intro-title">Search for activities</h2>
+          <h2 class="intro-title">What are you looking for and where?</h2>
         </div>
         <SearchBar
           v-model="searchQuery"
@@ -254,20 +254,20 @@ const handleCancelSearch = () => {
 .page-header {
   max-width: 600px;
   margin: 0 auto;
-  padding: 24px 16px 8px;
+  padding: 24px 16px 16px;
   text-align: center;
 }
 
 .intro-title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #6b7280;
   margin-bottom: 0;
 }
 
 @media (min-width: 768px) {
   .page-header {
-    padding: 16px 16px 8px;
+    padding: 16px 16px 16px;
   }
 
   .intro-title {
