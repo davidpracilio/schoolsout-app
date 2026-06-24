@@ -62,6 +62,19 @@
             stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+      <button
+        v-if="showCalendar"
+        class="calendar-button"
+        @click.stop="handleAddToCalendar"
+        aria-label="Add to calendar"
+      >
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="4" width="18" height="18" rx="2" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="16" y1="2" x2="16" y2="6" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="8" y1="2" x2="8" y2="6" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="3" y1="10" x2="21" y2="10" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
   </div>
 </template>
@@ -70,10 +83,14 @@
 import { computed } from 'vue'
 import { formatTagsForDisplay } from '../data/activityTags.js'
 
-const { activity } = defineProps({
+const { activity, showCalendar } = defineProps({
   activity: {
     type: Object,
     required: true
+  },
+  showCalendar: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -126,6 +143,49 @@ const getLocationDisplay = () => {
   }
   
   return activity.location
+}
+
+const handleAddToCalendar = () => {
+  const today = new Date()
+  const pad = n => String(n).padStart(2, '0')
+  const fmt = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  const isValid = val => val && !val.includes('Not') && val.trim() !== ''
+
+  const description = [
+    activity.description,
+    isValid(activity.price) ? `Cost: ${activity.price}` : null,
+    isValid(activity.date) ? `When: ${activity.date}` : null,
+    isValid(activity.bookingUrl) && !activity.bookingUrl.includes('example.com')
+      ? `More info: ${activity.bookingUrl}`
+      : null,
+  ].filter(Boolean).join('\\n\\n')
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    `DTSTART;VALUE=DATE:${fmt(today)}`,
+    `DTEND;VALUE=DATE:${fmt(tomorrow)}`,
+    `SUMMARY:${activity.name}`,
+    `DESCRIPTION:${description}`,
+    isValid(activity.location) ? `LOCATION:${activity.location}` : null,
+    isValid(activity.bookingUrl) && !activity.bookingUrl.includes('example.com')
+      ? `URL:${activity.bookingUrl}`
+      : null,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].filter(Boolean).join('\r\n')
+
+  const blob = new Blob([lines], { type: 'text/calendar;charset=utf-8' })
+  const blobUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.download = `${activity.name.replace(/[^a-z0-9]/gi, '_')}.ics`
+  link.click()
+  URL.revokeObjectURL(blobUrl)
 }
 
 const handleCardClick = () => {
@@ -251,6 +311,7 @@ const handleCardClick = () => {
 }
 
 .favorite-button,
+.calendar-button,
 .share-button {
   background: none;
   border: none;
@@ -264,17 +325,20 @@ const handleCardClick = () => {
 }
 
 .favorite-button:hover,
+.calendar-button:hover,
 .share-button:hover {
   transform: scale(1.15);
   background-color: #fef2f2;
 }
 
 .favorite-button:active,
+.calendar-button:active,
 .share-button:active {
   transform: scale(0.95);
 }
 
 .favorite-button svg,
+.calendar-button svg,
 .share-button svg {
   width: 22px;
   height: 22px;

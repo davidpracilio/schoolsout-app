@@ -26,6 +26,7 @@
             :activities="savedActivities"
             :loading="false"
             :has-searched="true"
+            :show-calendar="true"
             current-fact=""
             @toggle-favorite="handleToggleFavorite"
             @clear-search="showSaved = false"

@@ -93,10 +93,11 @@
     </div>
     
     <!-- Activity Cards -->
-    <ActivityCard 
-      v-for="activity in activities" 
+    <ActivityCard
+      v-for="activity in activities"
       :key="activity.id"
       :activity="activity"
+      :show-calendar="showCalendar"
       @toggle-favorite="$emit('toggle-favorite', activity.id)"
       @click="openModal(activity)"
     />
@@ -139,6 +140,10 @@ const props = defineProps({
   currentFact: {
     type: String,
     default: ''
+  },
+  showCalendar: {
+    type: Boolean,
+    default: false
   }
 })
 
