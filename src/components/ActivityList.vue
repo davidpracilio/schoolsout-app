@@ -66,14 +66,14 @@
       </div>
     </div>
     
-    <!-- Loading Feedback with Progress Bar -->
-    <LoadingFeedback 
-      v-if="loading && activities.length === 0"
+    <!-- Phase 1: spinner + cycling status messages -->
+    <LoadingFeedback
+      v-if="loading && activities.length === 0 && !skeletonReady"
       :loading="loading"
     />
-    
-    <!-- Loading Skeleton -->
-    <div v-if="loading && activities.length === 0" class="loading-skeleton">
+
+    <!-- Phase 2: skeleton cards -->
+    <div v-if="loading && activities.length === 0 && skeletonReady" class="loading-skeleton">
       <div v-for="n in 6" :key="n" class="skeleton-card">
         <div class="skeleton-content">
           <div class="skeleton-title"></div>
@@ -118,12 +118,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import ActivityCard from './ActivityCard.vue'
 import ActivityModal from './ActivityModal.vue'
 import LoadingFeedback from './LoadingFeedback.vue'
 
-defineProps({
+const props = defineProps({
   activities: {
     type: Array,
     required: true
@@ -139,6 +139,19 @@ defineProps({
   currentFact: {
     type: String,
     default: ''
+  }
+})
+
+const skeletonReady = ref(false)
+let skeletonTimer = null
+
+watch(() => props.loading, (val) => {
+  if (val) {
+    skeletonReady.value = false
+    skeletonTimer = setTimeout(() => { skeletonReady.value = true }, 13000)
+  } else {
+    skeletonReady.value = false
+    if (skeletonTimer) { clearTimeout(skeletonTimer); skeletonTimer = null }
   }
 })
 
@@ -352,7 +365,6 @@ const handleModalFavorite = () => {
   justify-content: space-between;
   align-items: flex-start;
   position: relative;
-  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-content {
@@ -366,6 +378,7 @@ const handleModalFavorite = () => {
   border-radius: 4px;
   margin-bottom: 12px;
   width: 70%;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-description {
@@ -374,6 +387,7 @@ const handleModalFavorite = () => {
   border-radius: 4px;
   margin-bottom: 8px;
   width: 100%;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-description:nth-child(2) {
@@ -397,6 +411,7 @@ const handleModalFavorite = () => {
   background: #F0F0F0;
   border-radius: 4px;
   width: 120px;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-meta-item.short {
@@ -409,6 +424,7 @@ const handleModalFavorite = () => {
   background: #F0F0F0;
   border-radius: 50%;
   flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* Search Fact Styles */
@@ -530,10 +546,10 @@ const handleModalFavorite = () => {
 /* Pulsating animation for skeleton loading */
 @keyframes pulse {
   0%, 100% {
-    opacity: 1;
+    background-color: #F0F0F0;
   }
   50% {
-    opacity: 0.6;
+    background-color: #C0C0C0;
   }
 }
 
