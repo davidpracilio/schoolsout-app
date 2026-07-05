@@ -94,10 +94,11 @@
     
     <!-- Activity Cards -->
     <ActivityCard
-      v-for="activity in activities"
+      v-for="(activity, index) in activities"
       :key="activity.id"
       :activity="activity"
       :show-calendar="showCalendar"
+      :show-save-hint="index === 1"
       @toggle-favorite="$emit('toggle-favorite', activity.id)"
       @click="openModal(activity)"
     />

@@ -5,11 +5,19 @@
         <img src="../assets/capybara.jpg" alt="Schools Out Logo" class="logo-icon" />
         <h1 class="app-title">Schools Out</h1>
       </div>
-      <button class="menu-button" @click="toggleMenu" aria-label="Menu">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 12H21M3 6H21M3 18H21" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
+      <div class="menu-button-wrapper">
+        <button class="menu-button" @click="toggleMenu" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12H21M3 6H21M3 18H21" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <HintBubble
+          v-if="showMenuHint"
+          hint-id="saved-menu-hint"
+          text="Access your saved activities from the menu."
+          placement="bottom"
+        />
+      </div>
     </div>
     <transition name="slide">
       <div v-show="menuOpen" class="menu-overlay" @click="closeMenu">
@@ -34,12 +42,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import HintBubble from './HintBubble.vue'
+import { useHints } from '../composables/useHints'
 
 const menuOpen = ref(false)
+const { isSeen, markSeen } = useHints()
+const showMenuHint = computed(() => !menuOpen.value && isSeen('save-activity-hint'))
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
+  if (menuOpen.value) markSeen('saved-menu-hint')
 }
 
 const closeMenu = () => {
@@ -101,6 +114,10 @@ const emit = defineEmits(['go-home', 'show-saved'])
   font-weight: 600;
   margin: 0;  
   font-family: 'Fredoka', sans-serif;
+}
+
+.menu-button-wrapper {
+  position: relative;
 }
 
 .menu-button {
@@ -261,7 +278,7 @@ const emit = defineEmits(['go-home', 'show-saved'])
     flex: 1;
   }
   
-  .menu-button {
+  .menu-button-wrapper {
     margin-left: auto;
   }
 }

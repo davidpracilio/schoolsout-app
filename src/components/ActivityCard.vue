@@ -1,5 +1,5 @@
 <template>
-  <div class="activity-card" @click="handleCardClick">
+  <div class="activity-card" ref="cardEl" @click="handleCardClick">
     <div class="card-content">
       <h3 class="card-title">{{ activity.name }}</h3>
       <p class="card-description">{{ activity.description }}</p>
@@ -76,14 +76,21 @@
         </svg>
       </button>
     </div>
+    <HintBubble
+      v-if="showSaveHint && hintInView"
+      hint-id="save-activity-hint"
+      text="Tap the heart to save an activity for later."
+      placement="bottom-left"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { formatTagsForDisplay } from '../data/activityTags.js'
+import HintBubble from './HintBubble.vue'
 
-const { activity, showCalendar } = defineProps({
+const { activity, showCalendar, showSaveHint } = defineProps({
   activity: {
     type: Object,
     required: true
@@ -91,7 +98,33 @@ const { activity, showCalendar } = defineProps({
   showCalendar: {
     type: Boolean,
     default: false
+  },
+  showSaveHint: {
+    type: Boolean,
+    default: false
   }
+})
+
+const cardEl = ref(null)
+const hintInView = ref(false)
+let hintObserver = null
+
+onMounted(() => {
+  if (!showSaveHint || !cardEl.value) return
+  hintObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) {
+        hintInView.value = true
+        hintObserver.disconnect()
+      }
+    },
+    { threshold: 0.6 }
+  )
+  hintObserver.observe(cardEl.value)
+})
+
+onUnmounted(() => {
+  hintObserver?.disconnect()
 })
 
 defineEmits(['toggle-favorite', 'click'])
