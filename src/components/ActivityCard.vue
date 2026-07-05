@@ -42,6 +42,7 @@
         :class="{ active: activity.isFavorite }"
         @click.stop="$emit('toggle-favorite')"
         :aria-label="activity.isFavorite ? 'Remove from saved' : 'Save activity'"
+        :data-tooltip="activity.isFavorite ? 'Remove' : 'Save'"
       >
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
@@ -56,6 +57,7 @@
         class="share-button"
         @click.stop="handleShare"
         aria-label="Share activity"
+        data-tooltip="Share"
       >
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"
@@ -67,6 +69,7 @@
         class="calendar-button"
         @click.stop="handleAddToCalendar"
         aria-label="Add to calendar"
+        data-tooltip="Calendar"
       >
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="3" y="4" width="18" height="18" rx="2" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -212,12 +215,17 @@ const handleAddToCalendar = () => {
     'END:VCALENDAR',
   ].filter(Boolean).join('\r\n')
 
+  const filename = `${activity.name.trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'activity'}.ics`
+
+  // TODO: test calendar handoff on Android, iOS, and desktop — no download attribute so MIME type drives behavior
   const blob = new Blob([lines], { type: 'text/calendar;charset=utf-8' })
   const blobUrl = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = blobUrl
-  link.download = `${activity.name.replace(/[^a-z0-9]/gi, '_')}.ics`
+  link.download = filename
+  document.body.appendChild(link)
   link.click()
+  document.body.removeChild(link)
   URL.revokeObjectURL(blobUrl)
 }
 
@@ -355,6 +363,31 @@ const handleCardClick = () => {
   justify-content: center;
   transition: transform 0.2s;
   border-radius: 50%;
+  position: relative;
+}
+
+@media (hover: hover) {
+  [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+  }
+
+  [data-tooltip]:hover::after {
+    opacity: 1;
+  }
 }
 
 .favorite-button:hover,
