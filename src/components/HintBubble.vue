@@ -32,11 +32,11 @@ defineExpose({ dismiss })
 .hint-bubble {
   position: absolute;
   z-index: 20;
-  background-color: #333;
+  background-color: #757575;
   color: white;
   padding: 10px 14px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.4;
   width: max-content;
   max-width: 220px;
@@ -62,7 +62,7 @@ defineExpose({ dismiss })
 .hint-bubble--bottom::before {
   bottom: 100%;
   right: 16px;
-  border-bottom-color: #333;
+  border-bottom-color: #757575;
 }
 
 .hint-bubble--bottom-left {
@@ -73,7 +73,7 @@ defineExpose({ dismiss })
 .hint-bubble--bottom-left::before {
   bottom: 100%;
   left: 16px;
-  border-bottom-color: #333;
+  border-bottom-color: #757575;
 }
 
 .hint-bubble-text {

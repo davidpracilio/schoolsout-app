@@ -99,6 +99,7 @@
       :activity="activity"
       :show-calendar="showCalendar"
       :show-save-hint="index === 1"
+      :show-tags-hint="index === 0"
       @toggle-favorite="$emit('toggle-favorite', activity.id)"
       @click="openModal(activity)"
     />
