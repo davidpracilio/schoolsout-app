@@ -26,6 +26,8 @@
         <nav class="menu-nav">
           <a @click="handleHome" class="menu-link">Home</a>
           <a @click="handleAbout" class="menu-link">About</a>
+          <!-- TODO: add a Settings link here — reset hints/onboarding, clear recent
+          searches, clear saved activities, default location -->
           <hr class="menu-divider" />
           <a @click="handleSaved" class="menu-link menu-link--saved">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="menu-heart-icon">
@@ -61,10 +63,12 @@ const closeMenu = () => {
 
 const handleHome = () => {
   closeMenu()
+  emit('go-home')
 }
 
 const handleAbout = () => {
   closeMenu()
+  emit('show-about')
 }
 
 const handleSaved = () => {
@@ -72,7 +76,7 @@ const handleSaved = () => {
   emit('show-saved')
 }
 
-const emit = defineEmits(['go-home', 'show-saved'])
+const emit = defineEmits(['go-home', 'show-saved', 'show-about'])
 </script>
 
 <style scoped>

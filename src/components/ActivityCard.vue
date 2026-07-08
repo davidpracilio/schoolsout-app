@@ -78,7 +78,7 @@
             <HintBubble
               v-if="showTagsHint && hintInView"
               hint-id="activity-tags-hint"
-              text="Tags highlight key attributes about an activity, like age range or environment."
+              text="Tags highlight key attributes, like age range, environment, or whether it offers drop and leave."
               placement="bottom"
             />
             <button
