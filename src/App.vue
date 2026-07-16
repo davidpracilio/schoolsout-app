@@ -80,6 +80,9 @@
 </template>
 
 <script setup>
+// TODO: update frontend wording/components (ActivityCard, ActivityList, ActivityModal, SearchBar, etc.)
+// to say "school holiday programs" instead of "activities", to match the backend prompt change in
+// schoolsout-app-suggestions/gemini_client.go.
 import { ref, onMounted, onUnmounted } from 'vue'
 import LandingPage from './components/LandingPage.vue'
 import OnboardingCarousel from './components/OnboardingCarousel.vue'
