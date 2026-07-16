@@ -46,7 +46,7 @@
             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#999" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           <span class="recent-query">{{ item.query }}</span>
-          <span v-if="item.location" class="recent-location">— {{ item.location }}</span>
+          <span v-if="item.location" class="recent-location">— {{ recentLocationDisplay(item.location) }}</span>
           <button class="recent-remove" @mousedown.prevent.stop="$emit('remove-recent', i)" aria-label="Remove">×</button>
         </li>
       </ul>
@@ -206,6 +206,9 @@ const selectRecentSearch = (item) => {
   searchFocused.value = false
   emit('select-recent', item)
 }
+
+// Recent searches store the full "Suburb, State" string; only show the suburb/area.
+const recentLocationDisplay = (location) => location.split(',')[0].trim()
 </script>
 
 <style scoped>
