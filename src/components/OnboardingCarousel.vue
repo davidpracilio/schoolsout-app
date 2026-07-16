@@ -66,7 +66,7 @@ const heroImage = capybaraGn
 
 const points = [
   { icon: 'search', text: "Tell us what you're looking for and where" },
-  { icon: 'heart', text: 'Discover activities, parks, sports, arts and more' },
+  { icon: 'heart', text: 'Discover programs for sports, crafts, and more' },
   { icon: 'location', text: 'Get key details — price, location and age range' }
 ]
 
